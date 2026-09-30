@@ -39,6 +39,8 @@ LabTechSaude.Server/
 ├── docs/                      # Especificações técnicas e arquiteturais
 ├── .ai/                       # Prompts padronizados e Skills para a IA
 ├── src/
-│   ├── LabTechSaude.Api/   # API RESTful em .NET (CRUDs, RAG, Endpoints)
-├── docker-compose.yml         # Orquestração de containers
+│   ├── LabTechSaude.Api/      # API RESTful em .NET (Endpoints, Controllers e Middlewares)
+│   ├── LabTechSaude.Data/     # Infraestrutura de dados em .NET (EF Core, Migrations e PgVector)
+│   └── LabTechSaude.Domain/   # Coração da aplicação (Entidades, Regras de Negócio e Interfaces)
+├── docker-compose.yml         # Orquestração de containers (API, PostgreSQL/PgVector)
 └── README.md

@@ -1,1 +1,5 @@
-<Solution />
+<Solution>
+  <Project Path="src/LabTechSaude.Api/LabTechSaude.Api.csproj" />
+  <Project Path="src/LabTechSaude.Data/LabTechSaude.Data.csproj" />
+  <Project Path="src/LabTechSaude.Domain/LabTechSaude.Domain.csproj" />
+</Solution>
