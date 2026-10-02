@@ -1,14 +1,13 @@
 ﻿using FluentValidation;
 using LabTechSaude.Domain.Core.DomainObjects.Validations;
 using LabTechSaude.Domain.Core.ValueObjects;
-using LabTechSaude.Domain.Core.ValueObjects.CPF;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace LabTechSaude.Domain.Pessoas
 {
-    public class PessoaValidation : EntityValidation<Pessoa>
+    public sealed class PessoaValidation : EntityValidation<Pessoa>
     {
         public PessoaValidation()
         {
@@ -28,8 +27,8 @@ namespace LabTechSaude.Domain.Pessoas
 
         private void ValidarCPF()
         {
-            RuleFor(p => p.CPF)
-                .SetValidator(new CPF.CPFValidator());
+            RuleFor(p => p.Cpf)
+                .SetValidator(new Cpf.CpfValidator());
         }
     }
 }

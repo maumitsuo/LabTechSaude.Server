@@ -10,12 +10,12 @@ namespace LabTechSaude.Domain.Pessoas
     public class Pessoa : Entity<Pessoa>
     {
         public string Nome { get; private set; } = string.Empty;
-        public CPF CPF { get; set; } = new CPF(string.Empty);
+        public Cpf Cpf { get; private set; } = null!;
 
-        public Pessoa(Guid id, string nome, CPF cpf)
+        public Pessoa(Guid id, string nome, Cpf cpf)
             : base(id)
         {
-            CPF = cpf;
+            Cpf = cpf;
 
             AlterarNome(nome);
         }

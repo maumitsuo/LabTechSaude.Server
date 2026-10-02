@@ -4,27 +4,43 @@ using FluentValidation.Results;
 
 namespace LabTechSaude.Domain.Core.ValueObjects
 {
-    public sealed class CPF : IEquatable<CPF>
+    public sealed class Cpf : IEquatable<Cpf>
     {
+        private static bool IsAsciiDigit(char character) => character >= '0' && character <= '9';
+
         public string Value { get; private set; } = string.Empty;
 
-        public CPF(string value)
+        public Cpf(string value)
         {
-            Value = CPFValidator.Normalize(value);
+            Value = Normalize(value);
         }
-        
-        public bool Equals(CPF? other) =>
+
+        private static string Normalize(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return string.Empty;
+            }
+
+            var digits = new string(value.Where(IsAsciiDigit).ToArray());
+            var ignoredCharacters = value.All(character =>
+                IsAsciiDigit(character) || character == '.' || character == '-' || char.IsWhiteSpace(character));
+
+            return ignoredCharacters && digits.Length == 11 ? digits : string.Empty;
+        }
+
+        public bool Equals(Cpf? other) =>
             other != null && string.Equals(Value, other.Value, StringComparison.Ordinal);
 
-        public override bool Equals(object? obj) => obj is CPF other && Equals(other);
+        public override bool Equals(object? obj) => obj is Cpf other && Equals(other);
 
         public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
 
-        public override string ToString() => Value;
+        public override string ToString() => $"{Value:000\\.000\\.000\\-00}";
 
-        public sealed class CPFValidator : AbstractValidator<CPF>
+        public sealed class CpfValidator : AbstractValidator<Cpf>
         {
-            public CPFValidator()
+            public CpfValidator()
             {
                 RuleFor(p => p.Value)
                     .Cascade(CascadeMode.Stop)
@@ -32,20 +48,6 @@ namespace LabTechSaude.Domain.Core.ValueObjects
                             .WithMessage("Favor preencher o CPF.")
                         .Must(IsValid)
                             .WithMessage("CPF inválido.");
-            }
-
-            internal static string Normalize(string? value)
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    return string.Empty;
-                }
-
-                var digits = new string(value.Where(IsAsciiDigit).ToArray());
-                var ignoredCharacters = value.All(character =>
-                    IsAsciiDigit(character) || character == '.' || character == '-' || char.IsWhiteSpace(character));
-
-                return ignoredCharacters && digits.Length == 11 ? digits : string.Empty;
             }
 
             private static bool IsValid(string? value)
@@ -77,8 +79,6 @@ namespace LabTechSaude.Domain.Core.ValueObjects
                 var remainder = sum % 11;
                 return remainder < 2 ? 0 : 11 - remainder;
             }
-
-            private static bool IsAsciiDigit(char character) => character >= '0' && character <= '9';
         }
     }
 }

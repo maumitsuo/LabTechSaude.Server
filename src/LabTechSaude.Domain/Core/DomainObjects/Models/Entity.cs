@@ -9,11 +9,9 @@ namespace LabTechSaude.Domain.Core.DomainObjects.Models
     public abstract class Entity<T> where T : Entity<T>
     {
         private readonly Lazy<EntityValidation<T>> _validation;
-        private ValidationResult _validationResult => _validation.Value.Validate((T)this);
-
+        
         public Guid Id { get; protected set; } = Guid.NewGuid();
-        public bool IsValid => _validationResult.IsValid;
-        public ICollection<string> ErrorMessages => _validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+        public ValidationResult ValidationResult => _validation.Value.Validate((T)this);
 
         public Entity(Guid id)
         {

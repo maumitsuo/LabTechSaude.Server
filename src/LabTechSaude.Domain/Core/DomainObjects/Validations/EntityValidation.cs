@@ -6,7 +6,7 @@ using System.Text;
 
 namespace LabTechSaude.Domain.Core.DomainObjects.Validations
 {
-    public class EntityValidation<T> : AbstractValidator<T> where T : Entity<T>
+    public abstract class EntityValidation<T> : AbstractValidator<T> where T : Entity<T>
     {
     }
 }
