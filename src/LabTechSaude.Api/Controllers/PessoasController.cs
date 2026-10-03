@@ -1,8 +1,8 @@
 ﻿using Asp.Versioning;
+using LabTechSaude.Api.Applications.Pessoas;
 using LabTechSaude.Api.Controllers.Core;
-using LabTechSaude.Api.Extensions;
+using LabTechSaude.Api.Notifications;
 using LabTechSaude.Api.ViewModels;
-using LabTechSaude.Domain.Pessoas;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LabTechSaude.Api.Controllers
@@ -11,20 +11,61 @@ namespace LabTechSaude.Api.Controllers
     [Route("api/v{version:apiVersion}/[controller]")]
     public class PessoasController : MainController
     {
-        private readonly IPessoaRepository _pessoaRepository;
+        private readonly IPessoaService _pessoaService;
 
         public PessoasController(
-            IPessoaRepository pessoaRepository)
+            Notificador notificador,
+            IPessoaService pessoaService)
+            : base(notificador)
         {
-            _pessoaRepository = pessoaRepository;
+            _pessoaService = pessoaService;
+        }
+
+        [HttpGet("{id:guid}")]
+        public async Task<ActionResult<PessoaViewModel>> ObterPorId(Guid id)
+        {
+            var pessoa = await _pessoaService.ObterPorId(id);
+
+            if (pessoa is null)
+                return NotFound();
+
+            return pessoa!;
         }
 
         [HttpGet]
         public async Task<IEnumerable<PessoaViewModel>> ObterTodos()
         {
-            return (await _pessoaRepository
-                .ObterTodos())
-                .ToViewModel();
+            return await _pessoaService.ObterTodos();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Post([FromBody] PessoaViewModel pessoaViewModel)
+        {
+            if (!ModelStateValida())
+                return CustomResponse();
+
+            await _pessoaService.Cadastrar(pessoaViewModel);
+
+            return CustomResponse(pessoaViewModel);
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Put([FromBody] PessoaViewModel pessoaViewModel)
+        {
+            if (!ModelStateValida())
+                return CustomResponse();
+
+            await _pessoaService.Atualizar(pessoaViewModel);
+
+            return CustomResponse(pessoaViewModel);
+        }
+
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            await _pessoaService.Excluir(id);
+
+            return CustomResponse();
         }
     }
 }

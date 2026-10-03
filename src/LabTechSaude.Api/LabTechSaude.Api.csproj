@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LabTechSaude.Data\LabTechSaude.Data.csproj" />
+    <ProjectReference Include="..\LabTechSaude.Application\LabTechSaude.Application.csproj" />
   </ItemGroup>
 
 </Project>

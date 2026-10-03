@@ -31,14 +31,14 @@ namespace LabTechSaude.Data.Repositories.Core
                 .SingleOrDefaultAsync(e => e.Id == id);
         }
 
-        public async virtual Task<IEnumerable<TEntity>> ObterTodos()
+        public virtual async Task<IEnumerable<TEntity>> ObterTodos()
         {
             return await _context.Set<TEntity>()
                 .AsNoTracking()
                 .ToListAsync();
         }
 
-        public async virtual Task Cadastrar(TEntity entity)
+        public virtual async Task Cadastrar(TEntity entity)
         {
             await _context.Set<TEntity>().AddAsync(entity);
         }
@@ -46,6 +46,14 @@ namespace LabTechSaude.Data.Repositories.Core
         public virtual void Atualizar(TEntity entity)
         {
             _context.Set<TEntity>().Update(entity);
+        }
+
+        public virtual async Task Excluir(Guid id)
+        {
+            var entity = await ObterPorId(id);
+
+            if (entity != null)
+                Excluir(entity);
         }
 
         public virtual void Excluir(TEntity entity)

@@ -11,5 +11,7 @@ namespace LabTechSaude.Domain.Core.Data
         Task<bool> ExisteId(Guid id, Guid pessoaId);
         Task<TEntity?> ObterPorId(Guid id, Guid pessoaId);
         Task<IEnumerable<TEntity>> ObterTodos(Guid pessoaId);
+
+        Task Excluir(Guid id, Guid pessoaId);
     }
 }

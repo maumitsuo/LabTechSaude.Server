@@ -11,6 +11,8 @@ namespace LabTechSaude.Api.Configs
             services.AddDbContext<LabTechSaudeDbContext>(options =>
                 options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
+            //services.AddProblemDetails();
+
             services.AddControllers();
 
             services.AddOpenApi();
@@ -44,6 +46,9 @@ namespace LabTechSaude.Api.Configs
             }
 
             app.UseHttpsRedirection();
+            
+            //app.UseExceptionHandler();
+            //app.UseStatusCodePages();
 
             app.UseRouting();
 

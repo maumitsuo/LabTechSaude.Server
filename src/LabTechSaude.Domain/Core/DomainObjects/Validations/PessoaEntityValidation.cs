@@ -8,6 +8,8 @@ namespace LabTechSaude.Domain.Core.DomainObjects.Validations
 {
     public abstract class PessoaEntityValidation<T> : EntityValidation<T> where T : PessoaEntity<T>
     {
+        public const string PessoaId_Required_Message = "Favor selecionar uma pessoa.";
+
         protected PessoaEntityValidation()
         {
             ValidarPessoa();
@@ -17,7 +19,7 @@ namespace LabTechSaude.Domain.Core.DomainObjects.Validations
         {
             RuleFor(p => p.PessoaId)
                 .NotEmpty()
-                    .WithMessage("Favor selecionar uma pessoa.");
+                    .WithMessage(PessoaId_Required_Message);
         }
     }
 }

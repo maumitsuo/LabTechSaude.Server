@@ -1,4 +1,6 @@
-﻿using LabTechSaude.Data.Context;
+﻿using LabTechSaude.Api.Applications.Pessoas;
+using LabTechSaude.Api.Notifications;
+using LabTechSaude.Data.Context;
 using LabTechSaude.Data.Repositories;
 using LabTechSaude.Data.Uow;
 using LabTechSaude.Domain.Core.Data;
@@ -13,6 +15,9 @@ namespace LabTechSaude.Api.Configs
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services.AddScoped<IPessoaRepository, PessoaRepository>();
+            services.AddScoped<IPessoaService, PessoaService>();
+
+            services.AddScoped<Notificador>();
 
             #region Context
             services.AddScoped<LabTechSaudeDbContext>();

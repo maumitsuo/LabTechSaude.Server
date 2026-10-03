@@ -15,25 +15,33 @@ namespace LabTechSaude.Data.Repositories.Core
         {
         }
 
-        public async virtual Task<bool> ExisteId(Guid id, Guid pessoaId)
+        public virtual async Task<bool> ExisteId(Guid id, Guid pessoaId)
         {
             return await _context.Set<TEntity>()
                 .AnyAsync(e => e.Id == id && e.PessoaId == pessoaId);
         }
 
-        public async virtual Task<TEntity?> ObterPorId(Guid id, Guid pessoaId)
+        public virtual async Task<TEntity?> ObterPorId(Guid id, Guid pessoaId)
         {
             return await _context.Set<TEntity>()
                 .AsNoTracking()
                 .SingleOrDefaultAsync(e => e.Id == id && e.PessoaId == pessoaId);
         }
 
-        public async virtual Task<IEnumerable<TEntity>> ObterTodos(Guid pessoaId)
+        public virtual async Task<IEnumerable<TEntity>> ObterTodos(Guid pessoaId)
         {
             return await _context.Set<TEntity>()
                 .AsNoTracking()
                 .Where(e => e.PessoaId == pessoaId)
                 .ToListAsync();
+        }
+
+        public virtual async Task Excluir(Guid id, Guid pessoaId)
+        {
+            var entity = await ObterPorId(id, pessoaId);
+
+            if (entity != null)
+                Excluir(entity);
         }
     }
 }

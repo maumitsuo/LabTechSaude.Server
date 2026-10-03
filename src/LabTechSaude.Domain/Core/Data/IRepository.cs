@@ -14,5 +14,6 @@ namespace LabTechSaude.Domain.Core.Data
         Task Cadastrar(TEntity entity);
         void Atualizar(TEntity entity);
         void Excluir(TEntity entity);
+        Task Excluir(Guid id);
     }
 }

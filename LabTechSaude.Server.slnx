@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="src/LabTechSaude.Api/LabTechSaude.Api.csproj" />
+  <Project Path="src/LabTechSaude.Application/LabTechSaude.Application.csproj" Id="907ec6ac-c562-42fa-b777-127bb8efdc7f" />
   <Project Path="src/LabTechSaude.Data/LabTechSaude.Data.csproj" />
   <Project Path="src/LabTechSaude.Domain/LabTechSaude.Domain.csproj" />
 </Solution>
