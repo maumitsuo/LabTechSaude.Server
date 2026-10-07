@@ -1,4 +1,4 @@
-﻿namespace LabTechSaude.Api.Notifications
+﻿namespace LabTechSaude.Application.Notifications
 {
     public class Notificador : IDisposable
     {

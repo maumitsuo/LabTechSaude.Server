@@ -1,8 +1,8 @@
-﻿using LabTechSaude.Api.ViewModels;
+﻿using LabTechSaude.Application.ViewModels;
 using LabTechSaude.Domain.Core.ValueObjects;
 using LabTechSaude.Domain.Pessoas;
 
-namespace LabTechSaude.Api.Extensions
+namespace LabTechSaude.Application.Extensions
 {
     public static class PessoaExtension
     {

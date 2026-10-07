@@ -1,10 +1,12 @@
 ﻿using FluentValidation.Results;
-using LabTechSaude.Api.Notifications;
+using LabTechSaude.Application.Notifications;
 using LabTechSaude.Domain.Core.Data;
 using LabTechSaude.Domain.Core.DomainObjects.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace LabTechSaude.Api.Applications.Core
+namespace LabTechSaude.Application.Core
 {
     public abstract class BaseService
     {
@@ -12,7 +14,7 @@ namespace LabTechSaude.Api.Applications.Core
         protected readonly IUnitOfWork _unitOfWork;
 
         public BaseService(
-            Notificador notificador, 
+            Notificador notificador,
             IUnitOfWork unitOfWork)
         {
             _notificador = notificador;
@@ -48,7 +50,7 @@ namespace LabTechSaude.Api.Applications.Core
 
         protected virtual async Task<bool> Commit()
         {
-            if (!CommandEhValido()) 
+            if (!CommandEhValido())
                 return false;
 
             if (await _unitOfWork.Commit())

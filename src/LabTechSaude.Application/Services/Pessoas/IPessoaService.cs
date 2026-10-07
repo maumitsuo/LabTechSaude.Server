@@ -1,6 +1,6 @@
-﻿using LabTechSaude.Api.ViewModels;
+﻿using LabTechSaude.Application.ViewModels;
 
-namespace LabTechSaude.Api.Applications.Pessoas
+namespace LabTechSaude.Application.Services.Pessoas
 {
     public interface IPessoaService
     {

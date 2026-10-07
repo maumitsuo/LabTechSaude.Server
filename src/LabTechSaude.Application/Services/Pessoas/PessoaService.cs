@@ -1,12 +1,12 @@
-﻿using LabTechSaude.Api.Applications.Core;
-using LabTechSaude.Api.Extensions;
-using LabTechSaude.Api.Notifications;
-using LabTechSaude.Api.ViewModels;
+﻿using LabTechSaude.Application.Core;
+using LabTechSaude.Application.Extensions;
+using LabTechSaude.Application.Notifications;
+using LabTechSaude.Application.ViewModels;
 using LabTechSaude.Domain.Core.Data;
 using LabTechSaude.Domain.Core.ValueObjects;
 using LabTechSaude.Domain.Pessoas;
 
-namespace LabTechSaude.Api.Applications.Pessoas
+namespace LabTechSaude.Application.Services.Pessoas
 {
     public class PessoaService : BaseService, IPessoaService
     {

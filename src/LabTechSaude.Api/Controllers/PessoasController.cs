@@ -1,8 +1,8 @@
 ﻿using Asp.Versioning;
-using LabTechSaude.Api.Applications.Pessoas;
 using LabTechSaude.Api.Controllers.Core;
-using LabTechSaude.Api.Notifications;
-using LabTechSaude.Api.ViewModels;
+using LabTechSaude.Application.Notifications;
+using LabTechSaude.Application.Services.Pessoas;
+using LabTechSaude.Application.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LabTechSaude.Api.Controllers

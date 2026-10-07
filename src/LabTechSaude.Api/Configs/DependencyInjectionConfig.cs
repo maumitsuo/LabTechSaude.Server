@@ -1,5 +1,5 @@
-﻿using LabTechSaude.Api.Applications.Pessoas;
-using LabTechSaude.Api.Notifications;
+﻿using LabTechSaude.Application.Notifications;
+using LabTechSaude.Application.Services.Pessoas;
 using LabTechSaude.Data.Context;
 using LabTechSaude.Data.Repositories;
 using LabTechSaude.Data.Uow;

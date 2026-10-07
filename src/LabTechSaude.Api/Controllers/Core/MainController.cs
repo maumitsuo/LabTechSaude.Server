@@ -1,4 +1,4 @@
-﻿using LabTechSaude.Api.Notifications;
+﻿using LabTechSaude.Application.Notifications;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LabTechSaude.Api.Controllers.Core
@@ -20,6 +20,7 @@ namespace LabTechSaude.Api.Controllers.Core
                 return Ok(result);
             }
 
+            
             return BadRequest(new ValidationProblemDetails(new Dictionary<string, string[]>
             {
                 { "mensagens", _notificador.Notificacoes.ToArray() }
