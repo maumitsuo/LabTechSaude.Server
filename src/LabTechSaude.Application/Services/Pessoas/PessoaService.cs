@@ -1,5 +1,4 @@
-﻿using LabTechSaude.Application.Core;
-using LabTechSaude.Application.Extensions;
+﻿using LabTechSaude.Application.Extensions;
 using LabTechSaude.Application.Notifications;
 using LabTechSaude.Application.ViewModels;
 using LabTechSaude.Domain.Core.Data;

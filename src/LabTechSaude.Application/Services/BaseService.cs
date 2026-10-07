@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace LabTechSaude.Application.Core
+namespace LabTechSaude.Application.Services
 {
     public abstract class BaseService
     {

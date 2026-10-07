@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LabTechSaude.Application\LabTechSaude.Application.csproj" />
+    <ProjectReference Include="..\LabTechSaude.Data\LabTechSaude.Data.csproj" />
   </ItemGroup>
 
 </Project>
