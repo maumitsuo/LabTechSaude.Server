@@ -10,20 +10,24 @@ namespace LabTechSaude.Api.Configs
 {
     public static class DependencyInjectionConfig
     {
-        public static IServiceCollection AddDependencyInjectionConfig(this IServiceCollection services, IConfiguration configuration)
+        public static WebApplicationBuilder AddDependencyInjectionConfig(this WebApplicationBuilder builder)
         {
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            if (builder == null)
+                throw new ArgumentNullException(nameof(builder));
 
-            services.AddScoped<IUsuarioRepository, UsuarioRepository>();
-            services.AddScoped<IUsuarioService, UsuarioService>();
+            builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-            services.AddScoped<Notificador>();
+            builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+            builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+
+            builder.Services.AddScoped<Notificador>();
 
             #region Context
-            services.AddScoped<LabTechSaudeDbContext>();
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<LabTechSaudeDbContext>();
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             #endregion Context
-            return services;
+            
+            return builder;
         }
     }
 }

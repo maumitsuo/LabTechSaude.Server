@@ -6,16 +6,16 @@ namespace LabTechSaude.Api.Configs
 {
     public static class ApiConfig
     {
-        public static IServiceCollection AddApiConfig(this IServiceCollection services, IConfiguration configuration)
+        public static WebApplicationBuilder AddApiConfig(this WebApplicationBuilder builder)
         {
-            services.AddDbContext<LabTechSaudeDbContext>(options =>
-                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+            if (builder == null)
+                throw new ArgumentNullException(nameof(builder));
 
-            services.AddControllers();
+            builder.Services.AddControllers();
 
-            services.AddOpenApi();
+            builder.Services.AddOpenApi();
 
-            services.AddCors(options =>
+            builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", builder =>
                 {
@@ -25,14 +25,14 @@ namespace LabTechSaude.Api.Configs
                 });
             });
 
-            services.AddApiVersionConfig(1, 0);
+            builder.Services.AddApiVersionConfig(1, 0);
 
-            services.Configure<ApiBehaviorOptions>(options =>
+            builder.Services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.SuppressModelStateInvalidFilter = true;
             });
 
-            return services;
+            return builder;
         }
 
         public static IApplicationBuilder UseApiConfiguration(this WebApplication app, IWebHostEnvironment env)
