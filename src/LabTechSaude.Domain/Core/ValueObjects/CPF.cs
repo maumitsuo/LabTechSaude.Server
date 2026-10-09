@@ -41,6 +41,7 @@ namespace LabTechSaude.Domain.Core.ValueObjects
 
     public sealed class CpfValidator : AbstractValidator<Cpf>
     {
+        public const int Cpf_Length = 11;
         public const string Cpf_Required_Message = "Favor preencher o CPF.";
         public const string Cpf_Invalid_Message = "CPF inválido.";
 

@@ -1,10 +1,10 @@
 ﻿using LabTechSaude.Application.Notifications;
-using LabTechSaude.Application.Services.Pessoas;
+using LabTechSaude.Application.Services.Usuarios;
 using LabTechSaude.Data.Context;
 using LabTechSaude.Data.Repositories;
 using LabTechSaude.Data.Uow;
 using LabTechSaude.Domain.Core.Data;
-using LabTechSaude.Domain.Pessoas;
+using LabTechSaude.Domain.Usuarios;
 
 namespace LabTechSaude.Api.Configs
 {
@@ -14,8 +14,8 @@ namespace LabTechSaude.Api.Configs
         {
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-            services.AddScoped<IPessoaRepository, PessoaRepository>();
-            services.AddScoped<IPessoaService, PessoaService>();
+            services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+            services.AddScoped<IUsuarioService, UsuarioService>();
 
             services.AddScoped<Notificador>();
 

@@ -5,14 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace LabTechSaude.Domain.Pessoas
+namespace LabTechSaude.Domain.Usuarios
 {
-    public class Pessoa : Entity<Pessoa>
+    public class Usuario : Entity<Usuario>
     {
         public string Nome { get; private set; } = string.Empty;
         public Cpf Cpf { get; private set; } = null!;
 
-        public Pessoa(Guid id, string nome, Cpf cpf)
+        public Usuario(Guid id, string nome, Cpf cpf)
             : base(id)
         {
             Cpf = cpf;
@@ -20,13 +20,13 @@ namespace LabTechSaude.Domain.Pessoas
             AlterarNome(nome);
         }
 
-        protected Pessoa() { }
+        protected Usuario() { }
 
         public void AlterarNome(string nome)
         {
             Nome = nome.Trim().ToUpper();
         }
 
-        protected override EntityValidation<Pessoa> CriarValidacao() => new PessoaValidation();
+        protected override EntityValidation<Usuario> CriarValidacao() => new UsuarioValidation();
     }
 }

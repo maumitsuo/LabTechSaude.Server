@@ -16,7 +16,7 @@ O domínio da aplicação é voltado para o acompanhamento de saúde e investiga
 
 ## 🩺 Funcionalidades da Aplicação
 
-1. **Gestão de Pessoas:** Cadastro de perfis para acompanhamento de saúde.
+1. **Gestão de Usuários:** Cadastro de perfis para acompanhamento de saúde.
 2. **Diário de Consumo:** Registro diário de refeições, bebidas e horários.
 3. **Sinais Vitais:** Registro e monitoramento de leituras de pressão arterial.
 4. **Rastreamento Alérgico:** Registro de sintomas para análise e correlação via IA.

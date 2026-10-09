@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace LabTechSaude.Domain.Pessoas
+namespace LabTechSaude.Domain.Usuarios
 {
-    public interface IPessoaRepository : IRepository<Pessoa>
+    public interface IUsuarioRepository : IRepository<Usuario>
     {
     }
 }

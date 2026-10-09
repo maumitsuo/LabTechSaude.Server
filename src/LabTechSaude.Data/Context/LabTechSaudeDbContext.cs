@@ -1,6 +1,6 @@
 ﻿using FluentValidation.Results;
 using LabTechSaude.Domain.Core.DomainObjects.Models;
-using LabTechSaude.Domain.Pessoas;
+using LabTechSaude.Domain.Usuarios;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ namespace LabTechSaude.Data.Context
             ChangeTracker.LazyLoadingEnabled = false;
         }
 
-        public DbSet<Pessoa> Pessoas { get; set; }
+        public DbSet<Usuario> Usuarios { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
