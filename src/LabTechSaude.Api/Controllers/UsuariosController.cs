@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace LabTechSaude.Api.Controllers
 {
     [ApiVersion("1.0")]
-    [Route("api/v{version:apiVersion}/[controller]")]
+    [Route("api/v{version:apiVersion}/usuarios")]
     public class UsuariosController : MainController
     {
         private readonly IUsuarioService _usuarioService;

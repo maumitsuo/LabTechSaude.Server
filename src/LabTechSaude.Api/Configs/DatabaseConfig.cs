@@ -1,6 +1,5 @@
 ﻿using LabTechSaude.Data.Context;
 using Microsoft.EntityFrameworkCore;
-using Parametriz.AutoNFP.Data.Context;
 
 namespace Parametriz.AutoNFP.Api.Configs
 {

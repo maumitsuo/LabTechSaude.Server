@@ -1,4 +1,5 @@
-﻿using LabTechSaude.Data.Context;
+﻿using Asp.Versioning.ApiExplorer;
+using LabTechSaude.Data.Context;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,8 +13,6 @@ namespace LabTechSaude.Api.Configs
                 throw new ArgumentNullException(nameof(builder));
 
             builder.Services.AddControllers();
-
-            builder.Services.AddOpenApi();
 
             builder.Services.AddCors(options =>
             {
@@ -39,7 +38,6 @@ namespace LabTechSaude.Api.Configs
         {
             if (env.IsDevelopment())
             {
-                app.MapOpenApi();
                 app.UseDeveloperExceptionPage();
             }
 
