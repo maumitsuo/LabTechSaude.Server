@@ -8,7 +8,7 @@ namespace LabTechSaude.Api.Configs
 {
     public static class DocsConfig
     {
-        public static readonly string[] ApiDocumentNames = ["v1", "v2"];
+        public static readonly string[] ApiDocumentNames = ["v1"];
         public static WebApplicationBuilder AddDocsConfig(this WebApplicationBuilder builder)
         {
             if (builder == null)

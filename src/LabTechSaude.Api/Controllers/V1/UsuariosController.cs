@@ -1,5 +1,6 @@
 ﻿using Asp.Versioning;
 using LabTechSaude.Api.Controllers.Core;
+using LabTechSaude.Application.Commands.Dispatchers;
 using LabTechSaude.Application.Commands.Handlers;
 using LabTechSaude.Application.Extensions;
 using LabTechSaude.Application.Notifications;
@@ -15,22 +16,14 @@ namespace LabTechSaude.Api.Controllers.V1
     public class UsuariosController : MainController
     {
         private readonly IUsuarioQuery _usuarioQuery;
-        private readonly ICommandHandler<CadastrarUsuarioCommand> _cadastrarUsuarioHandler;
-        private readonly ICommandHandler<AtualizarUsuarioCommand> _atualizarUsuarioHandler;
-        private readonly ICommandHandler<ExcluirUsuarioCommand> _excluirUsuarioHandler;
-
+        
         public UsuariosController(
             Notificador notificador,
             IUsuarioQuery usuarioQuery,
-            ICommandHandler<CadastrarUsuarioCommand> cadastrarUsuarioHandler,
-            ICommandHandler<AtualizarUsuarioCommand> atualizarUsuarioHandler,
-            ICommandHandler<ExcluirUsuarioCommand> excluirUsuarioHandler)
-                : base(notificador)
+            ICommandDispatcher commandDispatcher)
+                : base(notificador, commandDispatcher)
         {
             _usuarioQuery = usuarioQuery;
-            _cadastrarUsuarioHandler = cadastrarUsuarioHandler;
-            _atualizarUsuarioHandler = atualizarUsuarioHandler;
-            _excluirUsuarioHandler = excluirUsuarioHandler;
         }
 
         [HttpGet("{id:guid}")]
@@ -58,7 +51,7 @@ namespace LabTechSaude.Api.Controllers.V1
 
             var command = usuarioViewModel.ToCadastrarCommand();
 
-            await _cadastrarUsuarioHandler.Handle(command);
+            await _commandDispatcher.Send(command);
 
             return CustomResponse(command);
         }
@@ -71,7 +64,7 @@ namespace LabTechSaude.Api.Controllers.V1
 
             var command = usuarioViewModel.ToAtualizarCommand();
 
-            await _atualizarUsuarioHandler.Handle(command);
+            await _commandDispatcher.Send(command);
 
             return CustomResponse(command);
         }
@@ -81,7 +74,7 @@ namespace LabTechSaude.Api.Controllers.V1
         {
             var command = new ExcluirUsuarioCommand(id);
 
-            await _excluirUsuarioHandler.Handle(command);
+            await _commandDispatcher.Send(command);
 
             return CustomResponse(command);
         }
