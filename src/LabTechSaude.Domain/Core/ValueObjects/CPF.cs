@@ -34,6 +34,10 @@ namespace LabTechSaude.Domain.Core.ValueObjects
 
         public override bool Equals(object? obj) => obj is Cpf other && Equals(other);
 
+        public static bool operator ==(Cpf? left, Cpf? right) => left?.Equals(right) ?? right is null;
+
+        public static bool operator !=(Cpf? left, Cpf? right) => !(left == right);
+
         public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
 
         public override string ToString() => $"{Value:000\\.000\\.000\\-00}";

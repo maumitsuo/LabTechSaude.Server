@@ -1,5 +1,9 @@
-﻿using LabTechSaude.Application.Notifications;
+﻿using LabTechSaude.Application.Commands.Dispatchers;
+using LabTechSaude.Application.Commands.Handlers;
+using LabTechSaude.Application.Notifications;
 using LabTechSaude.Application.Services.Usuarios;
+using LabTechSaude.Application.Services.Usuarios.Commands;
+using LabTechSaude.Application.Services.Usuarios.Queries;
 using LabTechSaude.Data.Context;
 using LabTechSaude.Data.Repositories;
 using LabTechSaude.Data.Uow;
@@ -17,8 +21,13 @@ namespace LabTechSaude.Api.Configs
 
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
+            builder.Services.AddScoped<ICommandDispatcher, CommandDispatcher>();
+
             builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
-            builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+            builder.Services.AddScoped<IUsuarioQuery, UsuarioQuery>();
+            builder.Services.AddScoped<ICommandHandler<CadastrarUsuarioCommand>, UsuarioCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<AtualizarUsuarioCommand>, UsuarioCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<ExcluirUsuarioCommand>, UsuarioCommandHandler>();
 
             builder.Services.AddScoped<Notificador>();
 

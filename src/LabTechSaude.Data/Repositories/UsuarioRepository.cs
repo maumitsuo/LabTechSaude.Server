@@ -18,7 +18,7 @@ namespace LabTechSaude.Data.Repositories
         public override async Task<bool> EhUnico(Usuario usuario)
         {
             return !await _context.Usuarios
-                .AnyAsync(u => u.Cpf == usuario.Cpf &&
+                .AnyAsync(u => u.Cpf.Value == usuario.Cpf.Value &&
                                u.Id != usuario.Id);
         }
     }

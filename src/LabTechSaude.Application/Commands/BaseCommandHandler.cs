@@ -1,4 +1,5 @@
 ﻿using FluentValidation.Results;
+using LabTechSaude.Application.Commands.Dispatchers;
 using LabTechSaude.Application.Notifications;
 using LabTechSaude.Domain.Core.Data;
 using LabTechSaude.Domain.Core.DomainObjects.Models;
@@ -6,19 +7,22 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace LabTechSaude.Application.Services
+namespace LabTechSaude.Application.Commands
 {
-    public abstract class BaseService
+    public abstract class BaseCommandHandler
     {
         protected readonly Notificador _notificador;
         protected readonly IUnitOfWork _unitOfWork;
+        protected readonly ICommandDispatcher _commandDispatcher;
 
-        public BaseService(
+        public BaseCommandHandler(
             Notificador notificador,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            ICommandDispatcher commandDispatcher)
         {
             _notificador = notificador;
             _unitOfWork = unitOfWork;
+            _commandDispatcher = commandDispatcher;
         }
 
         protected bool NotificarErro(string mensagem)

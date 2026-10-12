@@ -1,7 +1,11 @@
 ﻿using Asp.Versioning;
 using LabTechSaude.Api.Controllers.Core;
+using LabTechSaude.Application.Commands.Dispatchers;
+using LabTechSaude.Application.Extensions;
 using LabTechSaude.Application.Notifications;
 using LabTechSaude.Application.Services.Usuarios;
+using LabTechSaude.Application.Services.Usuarios.Commands;
+using LabTechSaude.Application.Services.Usuarios.Queries;
 using LabTechSaude.Application.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,20 +15,21 @@ namespace LabTechSaude.Api.Controllers.V1
     [Route("api/v{version:apiVersion}/usuarios")]
     public class UsuariosController : MainController
     {
-        private readonly IUsuarioService _usuarioService;
+        private readonly IUsuarioQuery _usuarioQuery;
 
         public UsuariosController(
             Notificador notificador,
-            IUsuarioService usuarioService)
-            : base(notificador)
+            ICommandDispatcher commandDispatcher,
+            IUsuarioQuery usuarioQuery)
+                : base(notificador, commandDispatcher)
         {
-            _usuarioService = usuarioService;
+            _usuarioQuery = usuarioQuery;
         }
 
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<UsuarioViewModel>> ObterPorId(Guid id)
         {
-            var usuario = await _usuarioService.ObterPorId(id);
+            var usuario = await _usuarioQuery.ObterPorId(id);
 
             if (usuario is null)
                 return NotFound();
@@ -35,7 +40,7 @@ namespace LabTechSaude.Api.Controllers.V1
         [HttpGet]
         public async Task<IEnumerable<UsuarioViewModel>> ObterTodos()
         {
-            return await _usuarioService.ObterTodos();
+            return await _usuarioQuery.ObterTodos();
         }
 
         [HttpPost]
@@ -44,9 +49,11 @@ namespace LabTechSaude.Api.Controllers.V1
             if (!ModelStateValida())
                 return CustomResponse();
 
-            await _usuarioService.Cadastrar(usuarioViewModel);
+            var command = usuarioViewModel.ToCadastrarCommand();
 
-            return CustomResponse(usuarioViewModel);
+            await _commandDispatcher.Send(command);
+
+            return CustomResponse(command);
         }
 
         [HttpPut]
@@ -55,17 +62,21 @@ namespace LabTechSaude.Api.Controllers.V1
             if (!ModelStateValida())
                 return CustomResponse();
 
-            await _usuarioService.Atualizar(usuarioViewModel);
+            var command = usuarioViewModel.ToAtualizarCommand();
 
-            return CustomResponse(usuarioViewModel);
+            await _commandDispatcher.Send(command);
+
+            return CustomResponse(command);
         }
 
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            await _usuarioService.Excluir(id);
+            var command = new ExcluirUsuarioCommand(id);
 
-            return CustomResponse();
+            await _commandDispatcher.Send(command);
+
+            return CustomResponse(command);
         }
     }
 }

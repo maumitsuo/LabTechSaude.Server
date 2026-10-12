@@ -1,33 +1,33 @@
-﻿using LabTechSaude.Application.Extensions;
+﻿using LabTechSaude.Application.Commands;
+using LabTechSaude.Application.Commands.Dispatchers;
+using LabTechSaude.Application.Commands.Handlers;
 using LabTechSaude.Application.Notifications;
 using LabTechSaude.Application.ViewModels;
 using LabTechSaude.Domain.Core.Data;
 using LabTechSaude.Domain.Core.ValueObjects;
 using LabTechSaude.Domain.Usuarios;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace LabTechSaude.Application.Services.Usuarios
+namespace LabTechSaude.Application.Services.Usuarios.Commands
 {
-    public class UsuarioService : BaseService, IUsuarioService
+    public class UsuarioCommandHandler : BaseCommandHandler,
+        ICommandHandler<CadastrarUsuarioCommand>,
+        ICommandHandler<AtualizarUsuarioCommand>,
+        ICommandHandler<ExcluirUsuarioCommand>
     {
         private readonly IUsuarioRepository _usuarioRepository;
 
-        public UsuarioService(
-            Notificador notificador,
-            IUnitOfWork unitOfWork,
-            IUsuarioRepository usuarioRepository)
-            : base(notificador, unitOfWork)
+        public UsuarioCommandHandler(
+            Notificador notificador, 
+            IUnitOfWork unitOfWork, 
+            ICommandDispatcher commandDispatcher,
+            IUsuarioRepository usuarioRepository) 
+
+                : base(notificador, unitOfWork, commandDispatcher)
         {
             _usuarioRepository = usuarioRepository;
-        }
-
-        public async Task<UsuarioViewModel?> ObterPorId(Guid id)
-        {
-            return (await _usuarioRepository.ObterPorId(id))?.ToViewModel();
-        }
-
-        public async Task<IEnumerable<UsuarioViewModel>> ObterTodos()
-        {
-            return (await _usuarioRepository.ObterTodos()).ToViewModel();
         }
 
         private async Task UsuarioExiste(Guid id)
@@ -58,9 +58,9 @@ namespace LabTechSaude.Application.Services.Usuarios
             return CommandEhValido();
         }
 
-        public async Task<bool> Cadastrar(UsuarioViewModel usuarioViewModel)
+        public async Task<bool> Handle(CadastrarUsuarioCommand command, CancellationToken cancellationToken = default)
         {
-            var usuario = new Usuario(Guid.NewGuid(), usuarioViewModel.Nome, new Cpf(usuarioViewModel.Cpf));
+            var usuario = new Usuario(command.Id, command.Nome, new Cpf(command.Cpf));
 
             if (!await UsuarioAptoParaCadastrar(usuario))
                 return false;
@@ -83,11 +83,11 @@ namespace LabTechSaude.Application.Services.Usuarios
             return CommandEhValido();
         }
 
-        public async Task<bool> Atualizar(UsuarioViewModel usuarioViewModel)
+        public async Task<bool> Handle(AtualizarUsuarioCommand command, CancellationToken cancellationToken = default)
         {
-            var usuario = await _usuarioRepository.ObterPorId(usuarioViewModel.Id);
-            
-            usuario?.AlterarNome(usuarioViewModel.Nome);
+            var usuario = await _usuarioRepository.ObterPorId(command.Id);
+
+            usuario?.AlterarNome(command.Nome);
 
             if (!await UsuarioAptoParaAtualizar(usuario))
                 return false;
@@ -106,12 +106,12 @@ namespace LabTechSaude.Application.Services.Usuarios
             return CommandEhValido();
         }
 
-        public async Task<bool> Excluir(Guid id)
+        public async Task<bool> Handle(ExcluirUsuarioCommand command, CancellationToken cancellationToken = default)
         {
-            if (!await UsuarioAptoParaExcluir(id))
+            if (!await UsuarioAptoParaExcluir(command.Id))
                 return false;
 
-            await _usuarioRepository.Excluir(id);
+            await _usuarioRepository.Excluir(command.Id);
 
             await Commit();
 

@@ -1,4 +1,5 @@
-﻿using LabTechSaude.Application.ViewModels;
+﻿using LabTechSaude.Application.Services.Usuarios.Commands;
+using LabTechSaude.Application.ViewModels;
 using LabTechSaude.Domain.Core.ValueObjects;
 using LabTechSaude.Domain.Usuarios;
 
@@ -27,6 +28,22 @@ namespace LabTechSaude.Application.Extensions
 
                 .Select(p => p.ToViewModel()!)
                 .ToList();
+        }
+
+        public static CadastrarUsuarioCommand ToCadastrarCommand(this UsuarioViewModel usuarioViewModel)
+        {
+            return new CadastrarUsuarioCommand(
+                usuarioViewModel.Nome,
+                usuarioViewModel.Cpf
+            );
+        }
+
+        public static AtualizarUsuarioCommand ToAtualizarCommand(this UsuarioViewModel usuarioViewModel)
+        {
+            return new AtualizarUsuarioCommand(
+                usuarioViewModel.Id,
+                usuarioViewModel.Nome
+            );
         }
 
         public static Usuario? ToDomain(this UsuarioViewModel usuarioViewModel)
