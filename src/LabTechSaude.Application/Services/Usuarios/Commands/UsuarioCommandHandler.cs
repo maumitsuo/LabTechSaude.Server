@@ -1,14 +1,9 @@
 ﻿using LabTechSaude.Application.Commands;
-using LabTechSaude.Application.Commands.Dispatchers;
 using LabTechSaude.Application.Commands.Handlers;
 using LabTechSaude.Application.Notifications;
-using LabTechSaude.Application.ViewModels;
 using LabTechSaude.Domain.Core.Data;
 using LabTechSaude.Domain.Core.ValueObjects;
 using LabTechSaude.Domain.Usuarios;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LabTechSaude.Application.Services.Usuarios.Commands
 {
@@ -22,10 +17,9 @@ namespace LabTechSaude.Application.Services.Usuarios.Commands
         public UsuarioCommandHandler(
             Notificador notificador, 
             IUnitOfWork unitOfWork, 
-            ICommandDispatcher commandDispatcher,
             IUsuarioRepository usuarioRepository) 
 
-                : base(notificador, unitOfWork, commandDispatcher)
+                : base(notificador, unitOfWork)
         {
             _usuarioRepository = usuarioRepository;
         }

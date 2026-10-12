@@ -1,7 +1,5 @@
-﻿using LabTechSaude.Application.Commands.Dispatchers;
-using LabTechSaude.Application.Commands.Handlers;
+﻿using LabTechSaude.Application.Commands.Handlers;
 using LabTechSaude.Application.Notifications;
-using LabTechSaude.Application.Services.Usuarios;
 using LabTechSaude.Application.Services.Usuarios.Commands;
 using LabTechSaude.Application.Services.Usuarios.Queries;
 using LabTechSaude.Data.Context;
@@ -20,8 +18,6 @@ namespace LabTechSaude.Api.Configs
                 throw new ArgumentNullException(nameof(builder));
 
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
-            builder.Services.AddScoped<ICommandDispatcher, CommandDispatcher>();
 
             builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
             builder.Services.AddScoped<IUsuarioQuery, UsuarioQuery>();

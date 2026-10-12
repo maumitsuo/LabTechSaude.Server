@@ -1,9 +1,8 @@
 ﻿using Asp.Versioning;
 using LabTechSaude.Api.Controllers.Core;
-using LabTechSaude.Application.Commands.Dispatchers;
+using LabTechSaude.Application.Commands.Handlers;
 using LabTechSaude.Application.Extensions;
 using LabTechSaude.Application.Notifications;
-using LabTechSaude.Application.Services.Usuarios;
 using LabTechSaude.Application.Services.Usuarios.Commands;
 using LabTechSaude.Application.Services.Usuarios.Queries;
 using LabTechSaude.Application.ViewModels;
@@ -11,19 +10,27 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LabTechSaude.Api.Controllers.V1
 {
-    [ApiVersion("1.0", Deprecated = true)]
+    [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/usuarios")]
     public class UsuariosController : MainController
     {
         private readonly IUsuarioQuery _usuarioQuery;
+        private readonly ICommandHandler<CadastrarUsuarioCommand> _cadastrarUsuarioHandler;
+        private readonly ICommandHandler<AtualizarUsuarioCommand> _atualizarUsuarioHandler;
+        private readonly ICommandHandler<ExcluirUsuarioCommand> _excluirUsuarioHandler;
 
         public UsuariosController(
             Notificador notificador,
-            ICommandDispatcher commandDispatcher,
-            IUsuarioQuery usuarioQuery)
-                : base(notificador, commandDispatcher)
+            IUsuarioQuery usuarioQuery,
+            ICommandHandler<CadastrarUsuarioCommand> cadastrarUsuarioHandler,
+            ICommandHandler<AtualizarUsuarioCommand> atualizarUsuarioHandler,
+            ICommandHandler<ExcluirUsuarioCommand> excluirUsuarioHandler)
+                : base(notificador)
         {
             _usuarioQuery = usuarioQuery;
+            _cadastrarUsuarioHandler = cadastrarUsuarioHandler;
+            _atualizarUsuarioHandler = atualizarUsuarioHandler;
+            _excluirUsuarioHandler = excluirUsuarioHandler;
         }
 
         [HttpGet("{id:guid}")]
@@ -51,7 +58,7 @@ namespace LabTechSaude.Api.Controllers.V1
 
             var command = usuarioViewModel.ToCadastrarCommand();
 
-            await _commandDispatcher.Send(command);
+            await _cadastrarUsuarioHandler.Handle(command);
 
             return CustomResponse(command);
         }
@@ -64,7 +71,7 @@ namespace LabTechSaude.Api.Controllers.V1
 
             var command = usuarioViewModel.ToAtualizarCommand();
 
-            await _commandDispatcher.Send(command);
+            await _atualizarUsuarioHandler.Handle(command);
 
             return CustomResponse(command);
         }
@@ -74,7 +81,7 @@ namespace LabTechSaude.Api.Controllers.V1
         {
             var command = new ExcluirUsuarioCommand(id);
 
-            await _commandDispatcher.Send(command);
+            await _excluirUsuarioHandler.Handle(command);
 
             return CustomResponse(command);
         }

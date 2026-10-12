@@ -1,5 +1,4 @@
-﻿using LabTechSaude.Application.Commands.Dispatchers;
-using LabTechSaude.Application.Notifications;
+﻿using LabTechSaude.Application.Notifications;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LabTechSaude.Api.Controllers.Core
@@ -8,14 +7,11 @@ namespace LabTechSaude.Api.Controllers.Core
     public abstract class MainController : Controller
     {
         protected readonly Notificador _notificador;
-        protected readonly ICommandDispatcher _commandDispatcher;
-
+        
         public MainController(
-            Notificador notificador, 
-            ICommandDispatcher commandDispatcher)
+            Notificador notificador)
         {
             _notificador = notificador;
-            _commandDispatcher = commandDispatcher;
         }
 
         protected IActionResult CustomResponse(object? result = null)

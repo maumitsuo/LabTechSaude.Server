@@ -5,7 +5,7 @@ using System.Text;
 
 namespace LabTechSaude.Application.Commands.Handlers
 {
-    public interface ICommandHandler<in TCommand> where TCommand : Command
+    public interface ICommandHandler<in TCommand> where TCommand : ICommand
     {
         Task<bool> Handle(TCommand command, CancellationToken cancellationToken = default);
     }
