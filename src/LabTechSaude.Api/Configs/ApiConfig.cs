@@ -2,6 +2,7 @@
 using LabTechSaude.Data.Context;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 
 namespace LabTechSaude.Api.Configs
 {
@@ -39,6 +40,15 @@ namespace LabTechSaude.Api.Configs
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.MapOpenApi();
+
+                app.MapScalarApiReference(options =>
+                {
+                    options
+                        .WithTitle("LabTechSaude API")
+                        .WithTheme(ScalarTheme.BluePlanet)
+                        .AddPreferredSecuritySchemes("Bearer");
+                });
             }
 
             app.UseHttpsRedirection();

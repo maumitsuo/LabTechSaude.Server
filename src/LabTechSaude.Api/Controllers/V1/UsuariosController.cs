@@ -5,9 +5,9 @@ using LabTechSaude.Application.Services.Usuarios;
 using LabTechSaude.Application.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LabTechSaude.Api.Controllers
+namespace LabTechSaude.Api.Controllers.V1
 {
-    [ApiVersion("1.0")]
+    [ApiVersion("1.0", Deprecated = true)]
     [Route("api/v{version:apiVersion}/usuarios")]
     public class UsuariosController : MainController
     {

@@ -12,7 +12,8 @@ builder.Configuration
 builder
     .AddDatabaseConfig()
     .AddApiConfig()
-    .AddDependencyInjectionConfig();
+    .AddDependencyInjectionConfig()
+    .AddDocsConfig();
 
 var app = builder.Build();
 

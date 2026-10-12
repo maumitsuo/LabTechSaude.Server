@@ -11,6 +11,7 @@ namespace LabTechSaude.Api.Configs
                 options.ReportApiVersions = true;
                 options.AssumeDefaultVersionWhenUnspecified = true;
                 options.DefaultApiVersion = new ApiVersion(majorVersion, minorVersion);
+                options.ApiVersionReader = new UrlSegmentApiVersionReader();
             })
             .AddApiExplorer(options =>
             {
