@@ -57,10 +57,16 @@ namespace LabTechSaude.Application.Commands
             if (!CommandEhValido())
                 return false;
 
-            if (await _unitOfWork.Commit())
-                return true;
+            try
+            {
+                await _unitOfWork.Commit();
 
-            return NotificarErro("Ocorreu um erro ao salvar os dados no banco.");
+                return true;
+            }
+            catch (Exception)
+            {
+                return NotificarErro("Ocorreu um erro ao salvar os dados no banco.");
+            }
         }
     }
 }

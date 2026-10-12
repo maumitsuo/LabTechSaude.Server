@@ -6,7 +6,7 @@ namespace LabTechSaude.Domain.Core.Data
 {
     public interface IUnitOfWork : IDisposable
     {
-        Task<bool> Commit();
+        Task Commit();
         Task BeginTransaction();
         Task CommitTransaction();
         Task Rollback();

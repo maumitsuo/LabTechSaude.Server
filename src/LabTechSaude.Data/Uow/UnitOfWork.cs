@@ -17,9 +17,9 @@ namespace LabTechSaude.Data.Uow
             _context = context;
         }
 
-        public async Task<bool> Commit()
+        public async Task Commit()
         {
-            return await _context.SaveChangesAsync() > 0;
+            await _context.SaveChangesAsync();
         }
 
         public async Task BeginTransaction()
