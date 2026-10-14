@@ -1,4 +1,5 @@
-﻿using LabTechSaude.Application.Commands.Dispatchers;
+﻿using LabTechSaude.Api.Context;
+using LabTechSaude.Application.Commands.Dispatchers;
 using LabTechSaude.Application.Commands.Handlers;
 using LabTechSaude.Application.Notifications;
 using LabTechSaude.Application.Services.Usuarios.Commands;
@@ -32,6 +33,7 @@ namespace LabTechSaude.Api.Configs
 
             #region Context
             builder.Services.AddScoped<LabTechSaudeDbContext>();
+            builder.Services.AddScoped<LabTechSaudeIdentityDbContext>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             #endregion Context
             

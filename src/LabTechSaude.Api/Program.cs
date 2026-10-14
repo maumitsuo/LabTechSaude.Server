@@ -1,4 +1,5 @@
 using LabTechSaude.Api.Configs;
+using LabTechSaude.Api.Configs.Identity;
 using Parametriz.AutoNFP.Api.Configs;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,7 @@ builder.Configuration
 
 builder
     .AddDatabaseConfig()
+    .AddIdentityConfig()
     .AddApiConfig()
     .AddDependencyInjectionConfig()
     .AddDocsConfig();
