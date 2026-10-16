@@ -19,6 +19,7 @@ namespace LabTechSaude.Domain.Usuarios
         public UsuarioValidation()
         {
             ValidarNome();
+            ValidarEmail();
             ValidarCPF();
         }
 
@@ -32,10 +33,16 @@ namespace LabTechSaude.Domain.Usuarios
                         .WithMessage(Nome_Length_Message);
         }
 
+        private void ValidarEmail()
+        {
+            RuleFor(p => p.Email)
+                .SetValidator(new EmailValidation());
+        }
+
         private void ValidarCPF()
         {
             RuleFor(p => p.Cpf)
-                .SetValidator(new CpfValidator());
+                .SetValidator(new CpfValidation());
         }
     }
 }

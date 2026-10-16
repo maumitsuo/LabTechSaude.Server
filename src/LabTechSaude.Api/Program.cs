@@ -15,10 +15,12 @@ builder
     .AddIdentityConfig()
     .AddApiConfig()
     .AddDependencyInjectionConfig()
-    .AddDocsConfig();
+    .AddLabTechSaudeDocsConfig();
 
 var app = builder.Build();
 
-app.UseApiConfiguration(app.Environment);
+app
+    .UseLabTechSaudeDocs()
+    .UseApiConfiguration();
 
 app.Run();

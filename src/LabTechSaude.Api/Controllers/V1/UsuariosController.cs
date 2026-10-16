@@ -6,7 +6,7 @@ using LabTechSaude.Application.Extensions;
 using LabTechSaude.Application.Notifications;
 using LabTechSaude.Application.Services.Usuarios.Commands;
 using LabTechSaude.Application.Services.Usuarios.Queries;
-using LabTechSaude.Application.ViewModels;
+using LabTechSaude.Application.ViewModels.Usuarios;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LabTechSaude.Api.Controllers.V1

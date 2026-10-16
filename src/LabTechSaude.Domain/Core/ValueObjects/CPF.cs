@@ -43,13 +43,14 @@ namespace LabTechSaude.Domain.Core.ValueObjects
         public override string ToString() => $"{Value:000\\.000\\.000\\-00}";
     }
 
-    public sealed class CpfValidator : AbstractValidator<Cpf>
+    public sealed class CpfValidation : AbstractValidator<Cpf>
     {
-        public const int Cpf_Length = 11;
         public const string Cpf_Required_Message = "Favor preencher o CPF.";
+        public const int Cpf_Length = 11;
+        public const string Cpf_Length_Message = "O CPF deve ter 11 caracteres.";
         public const string Cpf_Invalid_Message = "CPF inválido.";
 
-        public CpfValidator()
+        public CpfValidation()
         {
             RuleFor(p => p.Value)
                 .Cascade(CascadeMode.Stop)

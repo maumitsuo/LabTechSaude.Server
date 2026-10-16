@@ -1,4 +1,4 @@
-﻿using LabTechSaude.Application.ViewModels;
+﻿using LabTechSaude.Application.ViewModels.Usuarios;
 using System;
 using System.Collections.Generic;
 using System.Text;
