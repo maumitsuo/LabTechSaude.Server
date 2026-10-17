@@ -21,31 +21,31 @@ namespace LabTechSaude.Api.Controllers.V1
         }
 
         [AllowAnonymous]
-        [HttpPost("enviar-confirmar-email")]
-        public async Task<IActionResult> EnviarConfirmarEmail([FromBody] EnviarCodigoConfirmarEmailViewModel enviarConfirmarEmail)
+        [HttpPost("enviar-codigo-confirmar-email")]
+        public async Task<IActionResult> EnviarCodigoConfirmarEmail([FromBody] EnviarCodigoConfirmarEmailViewModel enviarCodigoConfirmarEmail)
         {
-            if (!ModelState.IsValid)
+            if (!ModelStateValida())
                 return CustomResponse(ModelState);
 
-            var command = new EnviarCodigoConfirmarEmailCommand(enviarConfirmarEmail.UsuarioId);
+            var command = new EnviarCodigoConfirmarEmailCommand(enviarCodigoConfirmarEmail.UsuarioId);
 
             await _commandDispatcher.Send(command);
 
-            return CustomResponse(command);
+            return CustomResponse();
         }
 
         [AllowAnonymous]
-        [HttpPost("confirmar-email")]
-        public async Task<IActionResult> ConfirmarEmail([FromBody] ConfirmarEmailViewModel confirmarEmail)
+        [HttpPost("confirmar-codigo-email")]
+        public async Task<IActionResult> ConfirmarCodigoEmail([FromBody] ConfirmarEmailViewModel confirmarEmail)
         {
-            if (!ModelState.IsValid)
+            if (!ModelStateValida())
                 return CustomResponse(ModelState);
 
-            var command = new ConfirmarEmailCommand(confirmarEmail.Email, confirmarEmail.Code);
+            var command = new ConfirmarCodigoEmailCommand(confirmarEmail.Email, confirmarEmail.Code);
 
             await _commandDispatcher.Send(command);
 
-            return CustomResponse(command);
+            return CustomResponse();
         }
     }
 }

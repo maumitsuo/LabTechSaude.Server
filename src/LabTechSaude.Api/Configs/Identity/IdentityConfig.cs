@@ -19,13 +19,16 @@ namespace LabTechSaude.Api.Configs.Identity
 
             builder.Services.AddDbContext<LabTechSaudeIdentityDbContext>(options =>
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+           
+            builder.Services.ConfigureOptions<EmailConfirmationTokenProviderOptions>();
 
             //AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
             builder.Services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddErrorDescriber<IdentityMensagensPortugues>()
                 .AddEntityFrameworkStores<LabTechSaudeIdentityDbContext>()
-                .AddDefaultTokenProviders();
+                .AddDefaultTokenProviders()
+                .AddTokenProvider<EmailConfirmationTokenProvider>(EmailConfirmationTokenProvider.ProviderName);
 
             builder.Services.Configure<IdentityOptions>(options =>
             {
@@ -46,6 +49,7 @@ namespace LabTechSaude.Api.Configs.Identity
                 options.User.RequireUniqueEmail = true;
 
                 options.SignIn.RequireConfirmedEmail = true;
+                options.Tokens.EmailConfirmationTokenProvider = EmailConfirmationTokenProvider.ProviderName;
             });
 
             builder.Services.AddAuthentication(x =>

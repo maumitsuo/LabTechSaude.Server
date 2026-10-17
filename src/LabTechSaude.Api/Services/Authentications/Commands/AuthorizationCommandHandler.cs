@@ -1,41 +1,31 @@
-﻿using LabTechSaude.Api.Context;
-using LabTechSaude.Application.Commands;
+﻿using LabTechSaude.Application.Commands;
 using LabTechSaude.Application.Commands.Dispatchers;
 using LabTechSaude.Application.Commands.Handlers;
 using LabTechSaude.Application.Notifications;
 using LabTechSaude.Application.Services.Usuarios.Commands;
 using LabTechSaude.Domain.Core.Data;
-using LabTechSaude.Domain.Usuarios;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.WebUtilities;
-using System.Text;
+using LabTechSaude.Api.Services.Authentications;
+using LabTechSaude.Api.Services.Emails.Commands;
 
 namespace LabTechSaude.Api.Services.Authentications.Commands
 {
     public class AuthorizationCommandHandler : BaseCommandHandler,
         ICommandHandler<CadastrarAspNetUserCommand>,
         ICommandHandler<EnviarCodigoConfirmarEmailCommand>,
-        ICommandHandler<ConfirmarEmailCommand>
+        ICommandHandler<ConfirmarCodigoEmailCommand>
     {
         private readonly UserManager<IdentityUser> _userManager;
-        private readonly LabTechSaudeIdentityDbContext _context;
-        private readonly IUsuarioRepository _usuarioRepository;
+
         public AuthorizationCommandHandler(
             Notificador notificador,
             IUnitOfWork unitOfWork,
             ICommandDispatcher commandDispatcher,
-            UserManager<IdentityUser> userManager,
-            LabTechSaudeIdentityDbContext context,
-            IUsuarioRepository usuarioRepository)
+            UserManager<IdentityUser> userManager)
             : base(notificador, unitOfWork, commandDispatcher)
         {
             _userManager = userManager;
-            _context = context;
-            _usuarioRepository = usuarioRepository;
         }
-
-        private static long ToUnixEpochDate(DateTime date) =>
-            (long)Math.Round((date.ToUniversalTime() - new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero)).TotalSeconds);
 
         public async Task<bool> Handle(CadastrarAspNetUserCommand command, CancellationToken cancellationToken = default)
         {
@@ -54,7 +44,8 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
                 return false;
             }
 
-            await EnviarLinkConfirmarEmail(user);
+            if (!await EnviarCodigoConfirmarEmail(user, cancellationToken))
+                return false;
 
             return CommandEhValido();
         }
@@ -69,11 +60,18 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
             return true;
         }
 
-        private async Task EnviarLinkConfirmarEmail(IdentityUser user)
+        private async Task<bool> EnviarCodigoConfirmarEmail(IdentityUser user, CancellationToken cancellationToken)
         {
-            var usuario = await _usuarioRepository.ObterPorId(Guid.Parse(user.Id));
+            if (string.IsNullOrWhiteSpace(user.Email))
+                return NotificarErro("Não foi possível enviar o e-mail de confirmação: usuário sem endereço de e-mail.");
 
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var command = new EnviarEmailCommand(
+                user.Email,
+                "LabTechSaude - Confirme seu endereço de e-mail",
+                CriarCorpoEmailConfirmacao(code));
 
+            return await _commandDispatcher.Send(command, cancellationToken);
         }
 
         public async Task<bool> Handle(EnviarCodigoConfirmarEmailCommand command, CancellationToken cancellationToken = default)
@@ -86,26 +84,40 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
             if (user.EmailConfirmed)
                 return NotificarErro("Conta de e-mail já confirmada.");
 
-            await EnviarLinkConfirmarEmail(user);
+            if (!await EnviarCodigoConfirmarEmail(user, cancellationToken))
+                return false;
 
             return CommandEhValido();
         }
 
-        public async Task<bool> Handle(ConfirmarEmailCommand command, CancellationToken cancellationToken = default)
+        public async Task<bool> Handle(ConfirmarCodigoEmailCommand command, CancellationToken cancellationToken = default)
         {
             var user = await _userManager.FindByEmailAsync(command.Email);
 
             if (user == null)
                 return NotificarErro("Requisição inválida.");
 
-            var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(command.Code));
-            var result = await _userManager.ConfirmEmailAsync(user, code);
+            if (user.EmailConfirmed)
+                return NotificarErro("Conta de e-mail já confirmada.");
+
+            var result = await _userManager.ConfirmEmailAsync(user, command.Code);
 
             if (!result.Succeeded)
                 return AdicionarErrosIdentity(result);
             
             return true;
         }
+
+        private static string CriarCorpoEmailConfirmacao(string code) =>
+            string.Join("\r\n",
+                "Olá,",
+                "",
+                "Use o código abaixo para confirmar seu endereço de e-mail:",
+                "",
+                code,
+                "",
+                "O código expira em 10 minutos.",
+                "Se você não solicitou esta confirmação, ignore esta mensagem.");
 
         private bool AdicionarErrosIdentity(IdentityResult result)
         {

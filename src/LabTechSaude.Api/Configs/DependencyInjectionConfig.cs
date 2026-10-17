@@ -1,4 +1,6 @@
 ﻿using LabTechSaude.Api.Context;
+using LabTechSaude.Api.Services.Emails.Commands;
+using LabTechSaude.Api.Services.Authentications.Commands;
 using LabTechSaude.Application.Commands.Dispatchers;
 using LabTechSaude.Application.Commands.Handlers;
 using LabTechSaude.Application.Notifications;
@@ -21,6 +23,8 @@ namespace LabTechSaude.Api.Configs
 
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
+            builder.Services.Configure<SmtpConfig>(builder.Configuration.GetSection("SmtpConfig"));
+
             builder.Services.AddScoped<ICommandDispatcher, CommandDispatcher>();
 
             builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
@@ -28,6 +32,12 @@ namespace LabTechSaude.Api.Configs
             builder.Services.AddScoped<ICommandHandler<CadastrarUsuarioCommand>, UsuarioCommandHandler>();
             builder.Services.AddScoped<ICommandHandler<AtualizarUsuarioCommand>, UsuarioCommandHandler>();
             builder.Services.AddScoped<ICommandHandler<ExcluirUsuarioCommand>, UsuarioCommandHandler>();
+
+            builder.Services.AddScoped<ICommandHandler<CadastrarAspNetUserCommand>, AuthorizationCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<EnviarCodigoConfirmarEmailCommand>, AuthorizationCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<ConfirmarCodigoEmailCommand>, AuthorizationCommandHandler>();
+
+            builder.Services.AddScoped<ICommandHandler<EnviarEmailCommand>, EmailCommandHandler>();
 
             builder.Services.AddScoped<Notificador>();
 

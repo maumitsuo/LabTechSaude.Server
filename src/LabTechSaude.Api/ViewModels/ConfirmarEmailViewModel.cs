@@ -8,7 +8,7 @@ namespace LabTechSaude.Api.ViewModels
         public string Email { get; set; } = string.Empty;
         
         [Required]
-        [StringLength(6, MinimumLength = 6, ErrorMessage = "O código de confirmação inválido.")]
+        [RegularExpression("^[0-9]{6}$", ErrorMessage = "O código de confirmação deve conter 6 dígitos.")]
         public string Code { get; set; } = string.Empty;
     }
 }

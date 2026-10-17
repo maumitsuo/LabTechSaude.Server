@@ -12,12 +12,13 @@ namespace LabTechSaude.Application.Extensions
             if (usuario == null) 
                 return null;
 
-            return new UsuarioViewModel(
-                usuario.Id,
-                usuario.Nome,
-                usuario.Email.ToString(),
-                usuario.Cpf.ToString()
-            );
+            return new UsuarioViewModel 
+            { 
+                Id = usuario.Id,
+                Nome = usuario.Nome,
+                Email = usuario.Email.ToString(),
+                Cpf = usuario.Cpf.ToString()
+            };
         }
 
         public static IEnumerable<UsuarioViewModel> ToViewModel(this IEnumerable<Usuario> usuarios)
@@ -35,7 +36,7 @@ namespace LabTechSaude.Application.Extensions
         {
             return new CadastrarUsuarioCommand(
                 usuarioViewModel.Nome,
-                usuarioViewModel.email,
+                usuarioViewModel.Email,
                 usuarioViewModel.Cpf
             );
         }
