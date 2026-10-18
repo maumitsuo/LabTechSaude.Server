@@ -54,8 +54,9 @@ namespace LabTechSaude.Api.Services.Emails.Commands
 
                 return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 return NotificarErro("Falha ao enviar o e-mail.");
             }
         }

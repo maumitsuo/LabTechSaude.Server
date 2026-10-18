@@ -9,5 +9,6 @@ namespace LabTechSaude.Application.Services.Usuarios.Queries
     {
         Task<UsuarioViewModel?> ObterPorId(Guid id);
         Task<IEnumerable<UsuarioViewModel>> ObterTodos();
+        Task<UsuarioViewModel?> ObterPorEmail(string email);
     }
 }

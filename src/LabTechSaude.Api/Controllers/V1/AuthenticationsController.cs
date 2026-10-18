@@ -1,6 +1,7 @@
 ﻿using Asp.Versioning;
 using LabTechSaude.Api.Controllers.Core;
 using LabTechSaude.Api.Extensions;
+using LabTechSaude.Api.Models.Authentications;
 using LabTechSaude.Api.Services.Authentications.Commands;
 using LabTechSaude.Api.ViewModels;
 using LabTechSaude.Application.Commands.Dispatchers;
@@ -36,6 +37,18 @@ namespace LabTechSaude.Api.Controllers.V1
             return CustomResponse();
         }
 
+
+        [AllowAnonymous]
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] EfetuarLoginViewModel efetuarLoginViewModel)
+        {
+            if (!ModelStateValida())
+                return CustomResponse();
+
+            var response = await _commandDispatcher.Send<EfetuarLoginCommand, LoginResponse?>(efetuarLoginViewModel.ToCommand());
+
+            return CustomResponse(response);
+        }
 
         [AllowAnonymous]
         [HttpPost("enviar-codigo-confirmar-email")]

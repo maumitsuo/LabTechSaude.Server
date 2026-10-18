@@ -15,6 +15,13 @@ namespace LabTechSaude.Data.Repositories
         {
         }
 
+        public async Task<Usuario?> ObterPorEmail(string email)
+        {
+            return await _context.Usuarios
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Email.Value == email);
+        }
+
         public override async Task<bool> EhUnico(Usuario usuario)
         {
             return !await _context.Usuarios

@@ -11,6 +11,7 @@ using LabTechSaude.Data.Repositories;
 using LabTechSaude.Data.Uow;
 using LabTechSaude.Domain.Core.Data;
 using LabTechSaude.Domain.Usuarios;
+using LabTechSaude.Api.Models.Authentications;
 
 namespace LabTechSaude.Api.Configs
 {
@@ -36,6 +37,8 @@ namespace LabTechSaude.Api.Configs
             builder.Services.AddScoped<ICommandHandler<CadastrarAspNetUserCommand, bool>, AuthorizationCommandHandler>();
             builder.Services.AddScoped<ICommandHandler<EnviarCodigoConfirmarEmailCommand, bool>, AuthorizationCommandHandler>();
             builder.Services.AddScoped<ICommandHandler<ConfirmarCodigoEmailCommand, bool>, AuthorizationCommandHandler>();
+
+            builder.Services.AddScoped<ICommandHandler<EfetuarLoginCommand, LoginResponse?>, AuthorizationCommandHandler>();
 
             builder.Services.AddScoped<ICommandHandler<EnviarEmailCommand, bool>, EmailCommandHandler>();
 

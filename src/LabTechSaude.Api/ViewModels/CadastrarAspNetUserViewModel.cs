@@ -31,7 +31,7 @@ namespace LabTechSaude.Api.ViewModels
         public string Senha { get; set; } = string.Empty;
 
         [DataType(DataType.Password)]
-        [Compare("Senha", ErrorMessage = "A confirmação da senha não confere.")]
+        [Compare("Senha", ErrorMessage = "Senha não confere.")]
         public string SenhaConfirmacao { get; set; } = string.Empty;
     }
 }

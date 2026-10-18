@@ -5,26 +5,132 @@ using LabTechSaude.Application.Notifications;
 using LabTechSaude.Application.Services.Usuarios.Commands;
 using LabTechSaude.Domain.Core.Data;
 using Microsoft.AspNetCore.Identity;
+using LabTechSaude.Api.Configs.Identity;
+using LabTechSaude.Application.Services.Usuarios.Queries;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using LabTechSaude.Api.Services.Authentications;
 using LabTechSaude.Api.Services.Emails.Commands;
+using LabTechSaude.Api.Models.Authentications;
+using LabTechSaude.Application.ViewModels;
 
 namespace LabTechSaude.Api.Services.Authentications.Commands
 {
     public class AuthorizationCommandHandler : BaseCommandHandler,
         ICommandHandler<CadastrarAspNetUserCommand, bool>,
         ICommandHandler<EnviarCodigoConfirmarEmailCommand, bool>,
-        ICommandHandler<ConfirmarCodigoEmailCommand, bool>
+        ICommandHandler<ConfirmarCodigoEmailCommand, bool>,
+        ICommandHandler<EfetuarLoginCommand, LoginResponse?>
     {
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly IUsuarioQuery _usuarioQuery;
+        private readonly JwtTokenOptions _jwtTokenOptions;
 
         public AuthorizationCommandHandler(
             Notificador notificador,
             IUnitOfWork unitOfWork,
             ICommandDispatcher commandDispatcher,
-            UserManager<IdentityUser> userManager)
+            UserManager<IdentityUser> userManager,
+            SignInManager<IdentityUser> signInManager,
+            IUsuarioQuery usuarioQuery,
+            IOptions<JwtTokenOptions> jwtTokenOptions)
             : base(notificador, unitOfWork, commandDispatcher)
         {
             _userManager = userManager;
+            _signInManager = signInManager;
+            _usuarioQuery = usuarioQuery;
+            _jwtTokenOptions = jwtTokenOptions.Value;
+        }
+
+        public async Task<LoginResponse?> Handle(EfetuarLoginCommand command, CancellationToken cancellationToken = default)
+        {
+            const string credenciaisInvalidas = "Usuário ou senha inválidos.";
+
+            var user = await _userManager.FindByEmailAsync(command.Email);
+
+            if (user == null)
+            {
+                NotificarErro(credenciaisInvalidas);
+                return null;
+            }
+
+            var result = await _signInManager.CheckPasswordSignInAsync(user, command.Senha, lockoutOnFailure: true);
+
+            if (result.IsLockedOut)
+            {
+                NotificarErro("Conta temporariamente bloqueada por excesso de tentativas. Tente novamente mais tarde.");
+                return null;
+            }
+
+            if (result.IsNotAllowed)
+            {
+                NotificarErro("É necessário confirmar o e-mail antes de efetuar login.");
+                return null;
+            }
+
+            if (!result.Succeeded)
+            {
+                NotificarErro(credenciaisInvalidas);
+                return null;
+            }
+
+            var usuario = await _usuarioQuery.ObterPorId(Guid.Parse(user.Id));
+
+            if (usuario == null)
+            {
+                NotificarErro(credenciaisInvalidas);
+                return null;
+            }
+
+            return await GerarLoginResponse(user, usuario);
+        }
+
+        private async Task<LoginResponse?> GerarLoginResponse(IdentityUser user, UsuarioViewModel usuario)
+        {
+            var notBefore = DateTime.Now;
+            var expires = notBefore.AddHours(1);
+
+            return new LoginResponse
+            {
+                AccessToken = await GerarAccessToken(user, notBefore, expires),
+                NotBefore = notBefore,
+                Expires = expires,
+                Usuario = new UsuarioResponse
+                {
+                    Id = usuario.Id,
+                    Nome = usuario.Nome,
+                    Email = usuario.Email
+                }
+            };
+        }
+
+        private async Task<string> GerarAccessToken(IdentityUser user, DateTime notBefore, DateTime expires)
+        {
+            var claims = new List<Claim>
+            {
+                new(JwtRegisteredClaimNames.Sub, user.Id),
+                new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            foreach (var role in await _userManager.GetRolesAsync(user))
+                claims.Add(new Claim(ClaimTypes.Role, role));
+
+            var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtTokenOptions.SecretKey));
+
+            var token = new JwtSecurityToken(
+                issuer: _jwtTokenOptions.Issuer,
+                audience: _jwtTokenOptions.Audience,
+                claims: claims,
+                notBefore: notBefore,
+                expires: expires,
+                signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
         public async Task<bool> Handle(CadastrarAspNetUserCommand command, CancellationToken cancellationToken = default)
@@ -39,7 +145,7 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
                 return false;
 
             if (!await _commandDispatcher.Send<CadastrarUsuarioCommand, bool>(
-                new CadastrarUsuarioCommand(command.Nome, command.Email, command.Cpf)))
+                new CadastrarUsuarioCommand(Guid.Parse(user.Id), command.Nome, command.Email, command.Cpf)))
             {
                 await _userManager.DeleteAsync(user);
                 return false;

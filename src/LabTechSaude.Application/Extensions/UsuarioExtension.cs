@@ -32,15 +32,6 @@ namespace LabTechSaude.Application.Extensions
                 .ToList();
         }
 
-        public static CadastrarUsuarioCommand ToCadastrarCommand(this UsuarioViewModel usuarioViewModel)
-        {
-            return new CadastrarUsuarioCommand(
-                usuarioViewModel.Nome,
-                usuarioViewModel.Email,
-                usuarioViewModel.Cpf
-            );
-        }
-
         public static AtualizarUsuarioCommand ToAtualizarCommand(this UsuarioViewModel usuarioViewModel)
         {
             return new AtualizarUsuarioCommand(
