@@ -1,5 +1,6 @@
 ﻿using LabTechSaude.Api.Context;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -20,6 +21,11 @@ namespace LabTechSaude.Api.Configs.Identity
             builder.Services.AddDbContext<LabTechSaudeIdentityDbContext>(options =>
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
            
+            // Chaves compartilhadas no banco para que todas as instâncias validem os mesmos tokens
+            builder.Services.AddDataProtection()
+                .SetApplicationName("LabTechSaude")
+                .PersistKeysToDbContext<LabTechSaudeIdentityDbContext>();
+
             builder.Services.ConfigureOptions<EmailConfirmationTokenProviderOptions>();
 
             //AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);

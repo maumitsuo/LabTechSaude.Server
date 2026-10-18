@@ -1,11 +1,15 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace LabTechSaude.Api.Context
 {
-    public class LabTechSaudeIdentityDbContext : IdentityDbContext
+    public class LabTechSaudeIdentityDbContext : IdentityDbContext, IDataProtectionKeyContext
     {
-        public LabTechSaudeIdentityDbContext(DbContextOptions<LabTechSaudeIdentityDbContext> options)
+        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
+        
+        public LabTechSaudeIdentityDbContext(
+            DbContextOptions<LabTechSaudeIdentityDbContext> options)
             : base(options)
         {
             
