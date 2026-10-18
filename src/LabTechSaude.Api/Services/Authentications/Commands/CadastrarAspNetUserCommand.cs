@@ -9,6 +9,14 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
         public string Email { get; private set; } = string.Empty;
         public string Cpf { get; private set; } = string.Empty;
         public string Senha { get; private set; } = string.Empty;
-        public string SenhaConfirmacao { get; private set; } = string.Empty;
+        
+        public CadastrarAspNetUserCommand(string nome, string email, string cpf, string senha)
+        {
+            Id = Guid.NewGuid();
+            Nome = nome;
+            Email = email;
+            Cpf = cpf;
+            Senha = senha;
+        }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using LabTechSaude.Application.Services.Usuarios.Commands;
-using LabTechSaude.Application.ViewModels.Usuarios;
+using LabTechSaude.Application.ViewModels;
 using LabTechSaude.Domain.Core.ValueObjects;
 using LabTechSaude.Domain.Usuarios;
 

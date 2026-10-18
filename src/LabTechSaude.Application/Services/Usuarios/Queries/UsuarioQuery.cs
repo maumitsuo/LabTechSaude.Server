@@ -1,5 +1,5 @@
 ﻿using LabTechSaude.Application.Extensions;
-using LabTechSaude.Application.ViewModels.Usuarios;
+using LabTechSaude.Application.ViewModels;
 using LabTechSaude.Domain.Usuarios;
 using System;
 using System.Collections.Generic;

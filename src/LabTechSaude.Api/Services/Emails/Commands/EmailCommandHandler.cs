@@ -1,16 +1,27 @@
 ﻿using LabTechSaude.Api.Configs;
+using LabTechSaude.Application.Commands;
+using LabTechSaude.Application.Commands.Dispatchers;
 using LabTechSaude.Application.Commands.Handlers;
+using LabTechSaude.Application.Notifications;
+using LabTechSaude.Domain.Core.Data;
 using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
 namespace LabTechSaude.Api.Services.Emails.Commands
 {
-    public class EmailCommandHandler : ICommandHandler<EnviarEmailCommand>
+    public class EmailCommandHandler : BaseCommandHandler,
+        ICommandHandler<EnviarEmailCommand>
     {
         private readonly SmtpConfig _smtpConfig;
 
-        public EmailCommandHandler(IOptions<SmtpConfig> smtpConfig)
+        public EmailCommandHandler(
+            Notificador notificador, 
+            IUnitOfWork unitOfWork, 
+            ICommandDispatcher commandDispatcher,
+            IOptions<SmtpConfig> smtpConfig) 
+            : base(notificador, unitOfWork, commandDispatcher)
         {
             _smtpConfig = smtpConfig.Value;
         }
@@ -25,20 +36,28 @@ namespace LabTechSaude.Api.Services.Emails.Commands
 
             var mensagem = CriarMensagem(command);
 
-            using var cliente = new SmtpClient();
-            await cliente.ConnectAsync(
-                _smtpConfig.Host,
-                _smtpConfig.Port,
-                _smtpConfig.SecureSocketOptions,
-                cancellationToken);
+            try
+            {
+                using var cliente = new SmtpClient();
 
-            if (!string.IsNullOrWhiteSpace(_smtpConfig.UserName) || !string.IsNullOrWhiteSpace(_smtpConfig.Password))
-                await cliente.AuthenticateAsync(_smtpConfig.UserName, _smtpConfig.Password, cancellationToken);
+                await cliente.ConnectAsync(
+                    _smtpConfig.Host,
+                    _smtpConfig.Port,
+                    SecureSocketOptions.Auto,
+                    cancellationToken);
 
-            await cliente.SendAsync(mensagem, cancellationToken);
-            await cliente.DisconnectAsync(true, cancellationToken);
+                if (!string.IsNullOrWhiteSpace(_smtpConfig.UserName) || !string.IsNullOrWhiteSpace(_smtpConfig.Password))
+                    await cliente.AuthenticateAsync(_smtpConfig.UserName, _smtpConfig.Password, cancellationToken);
 
-            return true;
+                await cliente.SendAsync(mensagem, cancellationToken);
+                await cliente.DisconnectAsync(true, cancellationToken);
+
+                return true;
+            }
+            catch (Exception)
+            {
+                return NotificarErro("Falha ao enviar o e-mail.");
+            }
         }
 
         private MimeMessage CriarMensagem(EnviarEmailCommand command)

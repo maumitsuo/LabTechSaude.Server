@@ -6,7 +6,7 @@ using LabTechSaude.Application.Extensions;
 using LabTechSaude.Application.Notifications;
 using LabTechSaude.Application.Services.Usuarios.Commands;
 using LabTechSaude.Application.Services.Usuarios.Queries;
-using LabTechSaude.Application.ViewModels.Usuarios;
+using LabTechSaude.Application.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LabTechSaude.Api.Controllers.V1
@@ -41,19 +41,6 @@ namespace LabTechSaude.Api.Controllers.V1
         public async Task<IEnumerable<UsuarioViewModel>> ObterTodos()
         {
             return await _usuarioQuery.ObterTodos();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Post([FromBody] UsuarioViewModel usuarioViewModel)
-        {
-            if (!ModelStateValida())
-                return CustomResponse();
-
-            var command = usuarioViewModel.ToCadastrarCommand();
-
-            await _commandDispatcher.Send(command);
-
-            return CustomResponse(command);
         }
 
         [HttpPut]

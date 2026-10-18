@@ -76,7 +76,7 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
 
         public async Task<bool> Handle(EnviarCodigoConfirmarEmailCommand command, CancellationToken cancellationToken = default)
         {
-            var user = await _userManager.FindByIdAsync(command.UsuarioId.ToString());
+            var user = await _userManager.FindByEmailAsync(command.Email);
 
             if (user == null)
                 return NotificarErro("Requisição inválida.");
