@@ -31,9 +31,9 @@ namespace LabTechSaude.Api.Controllers.V1
 
             var command = cadastrarAspNetUserViewModel.ToCommand();
 
-            await _commandDispatcher.Send(command);
+            await _commandDispatcher.Send<CadastrarAspNetUserCommand, bool>(command);
 
-            return CustomResponse(command);
+            return CustomResponse();
         }
 
 
@@ -44,9 +44,9 @@ namespace LabTechSaude.Api.Controllers.V1
             if (!ModelStateValida())
                 return CustomResponse(ModelState);
 
-            var command = new EnviarCodigoConfirmarEmailCommand(enviarCodigoConfirmarEmail.Email);
+            var command = enviarCodigoConfirmarEmail.ToCommand();
 
-            await _commandDispatcher.Send(command);
+            await _commandDispatcher.Send<EnviarCodigoConfirmarEmailCommand, bool>(command);
 
             return CustomResponse();
         }
@@ -58,9 +58,9 @@ namespace LabTechSaude.Api.Controllers.V1
             if (!ModelStateValida())
                 return CustomResponse(ModelState);
 
-            var command = new ConfirmarCodigoEmailCommand(confirmarEmail.Email, confirmarEmail.Code);
+            var command = confirmarEmail.ToCommand();
 
-            await _commandDispatcher.Send(command);
+            await _commandDispatcher.Send<ConfirmarCodigoEmailCommand, bool>(command);
 
             return CustomResponse();
         }

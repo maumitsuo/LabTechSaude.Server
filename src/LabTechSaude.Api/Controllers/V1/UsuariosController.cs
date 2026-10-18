@@ -51,7 +51,7 @@ namespace LabTechSaude.Api.Controllers.V1
 
             var command = usuarioViewModel.ToAtualizarCommand();
 
-            await _commandDispatcher.Send(command);
+            await _commandDispatcher.Send<AtualizarUsuarioCommand, bool>(command);
 
             return CustomResponse(command);
         }
@@ -61,7 +61,7 @@ namespace LabTechSaude.Api.Controllers.V1
         {
             var command = new ExcluirUsuarioCommand(id);
 
-            await _commandDispatcher.Send(command);
+            await _commandDispatcher.Send<ExcluirUsuarioCommand, bool>(command);
 
             return CustomResponse(command);
         }

@@ -11,9 +11,9 @@ using LabTechSaude.Api.Services.Emails.Commands;
 namespace LabTechSaude.Api.Services.Authentications.Commands
 {
     public class AuthorizationCommandHandler : BaseCommandHandler,
-        ICommandHandler<CadastrarAspNetUserCommand>,
-        ICommandHandler<EnviarCodigoConfirmarEmailCommand>,
-        ICommandHandler<ConfirmarCodigoEmailCommand>
+        ICommandHandler<CadastrarAspNetUserCommand, bool>,
+        ICommandHandler<EnviarCodigoConfirmarEmailCommand, bool>,
+        ICommandHandler<ConfirmarCodigoEmailCommand, bool>
     {
         private readonly UserManager<IdentityUser> _userManager;
 
@@ -38,7 +38,8 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
             if (!await CadastrarIdentityUser(user, command.Senha))
                 return false;
 
-            if (!await _commandDispatcher.Send(new CadastrarUsuarioCommand(command.Nome, command.Email, command.Cpf)))
+            if (!await _commandDispatcher.Send<CadastrarUsuarioCommand, bool>(
+                new CadastrarUsuarioCommand(command.Nome, command.Email, command.Cpf)))
             {
                 await _userManager.DeleteAsync(user);
                 return false;
@@ -71,7 +72,7 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
                 "LabTechSaude - Confirme seu endereço de e-mail",
                 CriarCorpoEmailConfirmacao(code));
 
-            return await _commandDispatcher.Send(command, cancellationToken);
+            return await _commandDispatcher.Send<EnviarEmailCommand, bool>(command, cancellationToken);
         }
 
         public async Task<bool> Handle(EnviarCodigoConfirmarEmailCommand command, CancellationToken cancellationToken = default)

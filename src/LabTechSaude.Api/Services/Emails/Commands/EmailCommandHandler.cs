@@ -12,7 +12,7 @@ using MimeKit;
 namespace LabTechSaude.Api.Services.Emails.Commands
 {
     public class EmailCommandHandler : BaseCommandHandler,
-        ICommandHandler<EnviarEmailCommand>
+        ICommandHandler<EnviarEmailCommand, bool>
     {
         private readonly SmtpConfig _smtpConfig;
 

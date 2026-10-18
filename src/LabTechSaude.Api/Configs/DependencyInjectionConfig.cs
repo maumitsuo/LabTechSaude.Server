@@ -29,15 +29,15 @@ namespace LabTechSaude.Api.Configs
 
             builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
             builder.Services.AddScoped<IUsuarioQuery, UsuarioQuery>();
-            builder.Services.AddScoped<ICommandHandler<CadastrarUsuarioCommand>, UsuarioCommandHandler>();
-            builder.Services.AddScoped<ICommandHandler<AtualizarUsuarioCommand>, UsuarioCommandHandler>();
-            builder.Services.AddScoped<ICommandHandler<ExcluirUsuarioCommand>, UsuarioCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<CadastrarUsuarioCommand, bool>, UsuarioCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<AtualizarUsuarioCommand, bool>, UsuarioCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<ExcluirUsuarioCommand, bool>, UsuarioCommandHandler>();
 
-            builder.Services.AddScoped<ICommandHandler<CadastrarAspNetUserCommand>, AuthorizationCommandHandler>();
-            builder.Services.AddScoped<ICommandHandler<EnviarCodigoConfirmarEmailCommand>, AuthorizationCommandHandler>();
-            builder.Services.AddScoped<ICommandHandler<ConfirmarCodigoEmailCommand>, AuthorizationCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<CadastrarAspNetUserCommand, bool>, AuthorizationCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<EnviarCodigoConfirmarEmailCommand, bool>, AuthorizationCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<ConfirmarCodigoEmailCommand, bool>, AuthorizationCommandHandler>();
 
-            builder.Services.AddScoped<ICommandHandler<EnviarEmailCommand>, EmailCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<EnviarEmailCommand, bool>, EmailCommandHandler>();
 
             builder.Services.AddScoped<Notificador>();
 

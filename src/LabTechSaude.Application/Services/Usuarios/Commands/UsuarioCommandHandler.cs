@@ -9,9 +9,9 @@ using LabTechSaude.Domain.Usuarios;
 namespace LabTechSaude.Application.Services.Usuarios.Commands
 {
     public class UsuarioCommandHandler : BaseCommandHandler,
-        ICommandHandler<CadastrarUsuarioCommand>,
-        ICommandHandler<AtualizarUsuarioCommand>,
-        ICommandHandler<ExcluirUsuarioCommand>
+        ICommandHandler<CadastrarUsuarioCommand, bool>,
+        ICommandHandler<AtualizarUsuarioCommand, bool>,
+        ICommandHandler<ExcluirUsuarioCommand, bool>
     {
         private readonly IUsuarioRepository _usuarioRepository;
 
