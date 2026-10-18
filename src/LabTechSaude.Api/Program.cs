@@ -12,6 +12,7 @@ builder.Configuration
 
 builder
     .AddDatabaseConfig()
+    .AddRedisConfig()
     .AddIdentityConfig()
     .AddApiConfig()
     .AddDependencyInjectionConfig()
