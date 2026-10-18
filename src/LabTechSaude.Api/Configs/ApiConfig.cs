@@ -8,6 +8,8 @@ namespace LabTechSaude.Api.Configs
 {
     public static class ApiConfig
     {
+        private const string CorsPolicyName = "FrontendCors";
+
         public static WebApplicationBuilder AddApiConfig(this WebApplicationBuilder builder)
         {
             if (builder == null)
@@ -15,13 +17,24 @@ namespace LabTechSaude.Api.Configs
 
             builder.Services.AddControllers();
 
+            var isDevelopment = builder.Environment.IsDevelopment();
+            var allowedOrigins = (builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [])
+                .Append(builder.Configuration["UrlsConfig:FrontendUrl"] ?? string.Empty);
+
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowAll", builder =>
+                options.AddPolicy(CorsPolicyName, policy =>
                 {
-                    builder.AllowAnyOrigin()
-                           .AllowAnyMethod()
-                           .AllowAnyHeader();
+                    var origens = allowedOrigins
+                        .Where(origem => !string.IsNullOrWhiteSpace(origem))
+                        .Select(origem => origem.Trim().TrimEnd('/'))
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToArray();
+
+                    if (origens.Length > 0)
+                        policy.WithOrigins(origens).AllowAnyMethod().AllowAnyHeader();
+                    else if (isDevelopment)
+                        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
                 });
             });
 
@@ -44,7 +57,7 @@ namespace LabTechSaude.Api.Configs
 
             app.UseForwardedHeaders();
             app.UseHttpsRedirection();
-            app.UseCors("AllowAll");
+            app.UseCors(CorsPolicyName);
             app.UseRouting();
             app.UseRateLimiter();
 

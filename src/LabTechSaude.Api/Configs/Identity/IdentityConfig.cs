@@ -9,20 +9,27 @@ namespace LabTechSaude.Api.Configs.Identity
 {
     public static class IdentityConfig
     {
+        private const int MinimoBytesSecretKey = 32;
+
         public static WebApplicationBuilder AddIdentityConfig(this WebApplicationBuilder builder)
         {
             if (builder == null)
                 throw new ArgumentNullException(nameof(builder));
 
             var jwtTokenOptionsSection = builder.Configuration.GetSection("JwtTokenOptions");
-            builder.Services.AddOptions<JwtTokenOptions>()
+            builder.Services.AddOptions<JwtOptions>()
                 .Bind(jwtTokenOptionsSection)
                 .Validate(
                     options => options.RefreshTokenSlidingExpirationDays > 0
                         && options.RefreshTokenAbsoluteExpirationDays >= options.RefreshTokenSlidingExpirationDays,
                     "A validade absoluta do refresh token deve ser maior ou igual à validade deslizante.")
+                .Validate(
+                    options => !string.IsNullOrEmpty(options.SecretKey)
+                        && System.Text.Encoding.ASCII.GetByteCount(options.SecretKey) >= MinimoBytesSecretKey
+                        && options.SecretKey.All(char.IsAscii),
+                    $"JwtOptions:SecretKey deve conter apenas caracteres ASCII e ter no mínimo {MinimoBytesSecretKey} caracteres.")
                 .ValidateOnStart();
-            var jwtTokenOptions = jwtTokenOptionsSection.Get<JwtTokenOptions>();
+            var jwtOptions = jwtTokenOptionsSection.Get<JwtOptions>();
 
             builder.Services.AddDbContext<LabTechSaudeIdentityDbContext>(options =>
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -70,19 +77,19 @@ namespace LabTechSaude.Api.Configs.Identity
                 x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(x =>
             {
-                x.RequireHttpsMetadata = false;
+                x.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
                 x.SaveToken = true;
                 x.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(
-                        System.Text.Encoding.ASCII.GetBytes(jwtTokenOptions?.SecretKey ?? throw new InvalidOperationException("JWT Secret is not configured."))),
+                        System.Text.Encoding.ASCII.GetBytes(jwtOptions?.SecretKey ?? throw new InvalidOperationException("JWT Secret is not configured."))),
                    
                     ValidateIssuer = true,
-                    ValidIssuer = jwtTokenOptions?.Issuer,
+                    ValidIssuer = jwtOptions?.Issuer,
 
                     ValidateAudience = true,
-                    ValidAudience = jwtTokenOptions?.Audience,
+                    ValidAudience = jwtOptions?.Audience,
 
                     ValidateLifetime = true
                 };

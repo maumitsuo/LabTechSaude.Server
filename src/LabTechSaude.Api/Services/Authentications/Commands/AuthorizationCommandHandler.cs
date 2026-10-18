@@ -10,19 +10,14 @@ using Microsoft.AspNetCore.Identity;
 using LabTechSaude.Api.Configs.Identity;
 using LabTechSaude.Application.Services.Usuarios.Queries;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Text;
-using LabTechSaude.Api.Services.Authentications;
 using LabTechSaude.Api.Services.Emails.Commands;
 using LabTechSaude.Api.Models.Authentications;
 using LabTechSaude.Application.ViewModels;
 using LabTechSaude.Api.Services.RateLimiting;
 using System.Security.Cryptography;
 using LabTechSaude.Api.Configs.RateLimit;
-using LabTechSaude.Api.Context;
-using Microsoft.EntityFrameworkCore;
+using LabTechSaude.Api.Services.Authentications.Jwt;
 
 namespace LabTechSaude.Api.Services.Authentications.Commands
 {
@@ -36,15 +31,16 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
         ICommandHandler<RenovarRefreshTokenCommand, LoginResponse?>,
         ICommandHandler<RevogarRefreshTokenCommand, bool>
     {
-        private readonly UrlsConfig _frontendConfig;
+        private readonly UrlsConfig _urlsConfig;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly IUsuarioQuery _usuarioQuery;
-        private readonly JwtTokenOptions _jwtTokenOptions;
         private readonly IRateLimitService _rateLimitService;
         private readonly RateLimitConfig _rateLimitConfig;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly LabTechSaudeIdentityDbContext _identityDbContext;
+        private readonly IJwtService _jwtService;
+
+        private const string ErroPersistencia = "Ocorreu um erro ao salvar os dados no banco.";
 
         public AuthorizationCommandHandler(
             Notificador notificador,
@@ -53,23 +49,21 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
             IUsuarioQuery usuarioQuery,
-            IOptions<JwtTokenOptions> jwtTokenOptions,
             IRateLimitService rateLimitService,
             IOptions<RateLimitConfig> rateLimitConfig,
             IHttpContextAccessor httpContextAccessor,
-            IOptions<UrlsConfig> frontendConfig,
-            LabTechSaudeIdentityDbContext identityDbContext)
+            IOptions<UrlsConfig> urlsConfig,
+            IJwtService jwtService)
             : base(notificador, unitOfWork, commandDispatcher)
         {
-            _frontendConfig = frontendConfig.Value;
+            _urlsConfig = urlsConfig.Value;
             _userManager = userManager;
             _signInManager = signInManager;
             _usuarioQuery = usuarioQuery;
-            _jwtTokenOptions = jwtTokenOptions.Value;
             _rateLimitService = rateLimitService;
             _rateLimitConfig = rateLimitConfig.Value;
             _httpContextAccessor = httpContextAccessor;
-            _identityDbContext = identityDbContext;
+            _jwtService = jwtService;
         }
 
         public async Task<LoginResponse?> Handle(EfetuarLoginCommand command, CancellationToken cancellationToken = default)
@@ -95,6 +89,7 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
             if (result.IsNotAllowed)
             {
                 NotificarErro("É necessário confirmar o e-mail antes de efetuar login.");
+                await EnviarConfirmarEmail(user, cancellationToken);
                 return null;
             }
 
@@ -120,240 +115,54 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
             UsuarioViewModel usuario,
             CancellationToken cancellationToken)
         {
-            var now = DateTimeOffset.UtcNow;
-            var notBefore = now.UtcDateTime;
-            var expires = notBefore.AddHours(1);
-            var familyId = Guid.NewGuid();
-            var absoluteExpiresAt = now.AddDays(_jwtTokenOptions.RefreshTokenAbsoluteExpirationDays);
-            var refreshToken = GerarRefreshToken();
-            var refreshTokenEntity = CriarRefreshTokenEntity(user.Id, familyId, now, absoluteExpiresAt, refreshToken);
-            var accessToken = await GerarAccessToken(user, notBefore, expires);
+            LoginResponse? login = null;
 
-            _identityDbContext.RefreshTokens.Add(refreshTokenEntity);
-            await _identityDbContext.SaveChangesAsync(cancellationToken);
+            try
+            {
+                login = await _jwtService.GerarLoginResponseAsync(user, usuario, cancellationToken);
+            }
+            catch (Exception)
+            {
+                NotificarErro(ErroPersistencia);
+            }
 
-            return CriarLoginResponse(usuario, accessToken, refreshToken, notBefore, expires);
-        }
-
-        private string GerarRefreshToken()
-        {
-            return WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(64));
+            return login;
         }
 
         public async Task<LoginResponse?> Handle(
             RenovarRefreshTokenCommand command,
             CancellationToken cancellationToken = default)
         {
-            const string tokenInvalido = "Refresh token inválido ou expirado.";
+            LoginResponse? login = null;
 
-            if (string.IsNullOrWhiteSpace(command.RefreshToken))
+            try
             {
-                NotificarErro(tokenInvalido);
-                return null;
+                login = await _jwtService.RenovarAsync(command.RefreshToken, cancellationToken);
+            }
+            catch (Exception)
+            {
+                NotificarErro(ErroPersistencia);
             }
 
-            var tokenHash = CalcularHash(command.RefreshToken);
-
-            await using var transaction = await _identityDbContext.Database.BeginTransactionAsync(cancellationToken);
-            var currentToken = await _identityDbContext.RefreshTokens
-                .SingleOrDefaultAsync(token => token.TokenHash == tokenHash, cancellationToken);
-
-            if (currentToken == null)
-            {
-                NotificarErro(tokenInvalido);
-                return null;
-            }
-
-            await BloquearFamilia(currentToken.FamilyId, cancellationToken);
-            await _identityDbContext.Entry(currentToken).ReloadAsync(cancellationToken);
-            var now = DateTimeOffset.UtcNow;
-
-            if (currentToken.RevokedAt.HasValue)
-            {
-                await RevogarFamilia(currentToken.FamilyId, now, cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
-                NotificarErro(tokenInvalido);
-                return null;
-            }
-
-            if (currentToken.ExpiresAt <= now || currentToken.AbsoluteExpiresAt <= now)
-            {
-                NotificarErro(tokenInvalido);
-                return null;
-            }
-
-            var user = await _userManager.FindByIdAsync(currentToken.UserId);
-            if (user == null)
-            {
-                NotificarErro(tokenInvalido);
-                return null;
-            }
-
-            var usuario = await _usuarioQuery.ObterPorId(Guid.Parse(user.Id));
-            if (usuario == null)
-            {
-                NotificarErro(tokenInvalido);
-                return null;
-            }
-
-            var nextTokenId = Guid.NewGuid();
-            var refreshToken = GerarRefreshToken();
-
-            var refreshTokenEntity = CriarRefreshTokenEntity(
-                user.Id,
-                currentToken.FamilyId,
-                now,
-                currentToken.AbsoluteExpiresAt,
-                refreshToken,
-                nextTokenId);
-
-            var notBefore = now.UtcDateTime;
-            var expires = notBefore.AddHours(1);
-            var accessToken = await GerarAccessToken(user, notBefore, expires);
-
-            _identityDbContext.RefreshTokens.Add(refreshTokenEntity);
-            await _identityDbContext.SaveChangesAsync(cancellationToken);
-
-            var updated = await _identityDbContext.RefreshTokens
-                .Where(token =>
-                    token.Id == currentToken.Id
-                    && token.RevokedAt == null
-                    && token.ExpiresAt > now
-                    && token.AbsoluteExpiresAt > now)
-                .ExecuteUpdateAsync(updates => updates
-                    .SetProperty(token => token.RevokedAt, now)
-                    .SetProperty(token => token.ReplacedByTokenId, nextTokenId), cancellationToken);
-
-            if (updated == 0)
-            {
-                await RevogarFamilia(currentToken.FamilyId, now, cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
-                NotificarErro(tokenInvalido);
-                return null;
-            }
-
-            await transaction.CommitAsync(cancellationToken);
-
-            return CriarLoginResponse(usuario, accessToken, refreshToken, notBefore, expires);
+            return login;
         }
 
         public async Task<bool> Handle(
             RevogarRefreshTokenCommand command,
             CancellationToken cancellationToken = default)
         {
-            const string tokenInvalido = "Refresh token inválido.";
+            var revogado = false;
 
-            if (string.IsNullOrWhiteSpace(command.RefreshToken))
-                return NotificarErro(tokenInvalido);
-
-            var tokenHash = CalcularHash(command.RefreshToken);
-            await using var transaction = await _identityDbContext.Database.BeginTransactionAsync(cancellationToken);
-            var token = await _identityDbContext.RefreshTokens
-                .AsNoTracking()
-                .SingleOrDefaultAsync(refreshToken => refreshToken.TokenHash == tokenHash, cancellationToken);
-
-            if (token == null)
-                return NotificarErro(tokenInvalido);
-
-            await BloquearFamilia(token.FamilyId, cancellationToken);
-            await RevogarFamilia(token.FamilyId, DateTimeOffset.UtcNow, cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-            return true;
-        }
-
-        private async Task BloquearFamilia(Guid familyId, CancellationToken cancellationToken)
-        {
-            await _identityDbContext.Database.ExecuteSqlInterpolatedAsync(
-                $"SELECT pg_advisory_xact_lock(hashtextextended({familyId.ToString()}, 0))",
-                cancellationToken);
-        }
-
-        private async Task RevogarFamilia(
-            Guid familyId,
-            DateTimeOffset revokedAt,
-            CancellationToken cancellationToken)
-        {
-            await _identityDbContext.RefreshTokens
-                .Where(token => token.FamilyId == familyId && token.RevokedAt == null)
-                .ExecuteUpdateAsync(
-                    updates => updates.SetProperty(token => token.RevokedAt, revokedAt),
-                    cancellationToken);
-        }
-
-        private RefreshToken CriarRefreshTokenEntity(
-            string userId,
-            Guid familyId,
-            DateTimeOffset now,
-            DateTimeOffset absoluteExpiresAt,
-            string token,
-            Guid? tokenId = null)
-        {
-            var expiresAt = now.AddDays(_jwtTokenOptions.RefreshTokenSlidingExpirationDays);
-            if (expiresAt > absoluteExpiresAt)
-                expiresAt = absoluteExpiresAt;
-
-            return new RefreshToken
+            try
             {
-                Id = tokenId ?? Guid.NewGuid(),
-                UserId = userId,
-                FamilyId = familyId,
-                TokenHash = CalcularHash(token),
-                CreatedAt = now,
-                ExpiresAt = expiresAt,
-                AbsoluteExpiresAt = absoluteExpiresAt
-            };
-        }
-
-        private static string CalcularHash(string token)
-        {
-            return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
-        }
-
-        private static LoginResponse CriarLoginResponse(
-            UsuarioViewModel usuario,
-            string accessToken,
-            string refreshToken,
-            DateTime notBefore,
-            DateTime expires)
-        {
-            return new LoginResponse
+                revogado = await _jwtService.RevogarAsync(command.RefreshToken, cancellationToken);
+            }
+            catch (Exception)
             {
-                AccessToken = accessToken,
-                RefreshToken = refreshToken,
-                NotBefore = notBefore,
-                Expires = expires,
-                Usuario = new UsuarioResponse
-                {
-                    Id = usuario.Id,
-                    Nome = usuario.Nome,
-                    Email = usuario.Email
-                }
-            };
-        }
+                NotificarErro(ErroPersistencia);
+            }
 
-        private async Task<string> GerarAccessToken(IdentityUser user, DateTime notBefore, DateTime expires)
-        {
-            var claims = new List<Claim>
-            {
-                new(JwtRegisteredClaimNames.Sub, user.Id),
-                new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
-                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
-
-            foreach (var role in await _userManager.GetRolesAsync(user))
-                claims.Add(new Claim(ClaimTypes.Role, role));
-
-            var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtTokenOptions.SecretKey));
-
-            var token = new JwtSecurityToken(
-                issuer: _jwtTokenOptions.Issuer,
-                audience: _jwtTokenOptions.Audience,
-                claims: claims,
-                notBefore: notBefore,
-                expires: expires,
-                signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return revogado;
         }
 
         public async Task<bool> Handle(CadastrarAspNetUserCommand command, CancellationToken cancellationToken = default)
@@ -374,7 +183,7 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
                 return false;
             }
 
-            if (!await EnviarCodigoConfirmarEmail(user, cancellationToken))
+            if (!await EnviarConfirmarEmail(user, cancellationToken))
                 return false;
 
             return CommandEhValido();
@@ -390,7 +199,7 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
             return true;
         }
 
-        private async Task<bool> EnviarCodigoConfirmarEmail(IdentityUser user, CancellationToken cancellationToken)
+        private async Task<bool> EnviarConfirmarEmail(IdentityUser user, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(user.Email))
                 return NotificarErro("Não foi possível enviar o e-mail de confirmação: usuário sem endereço de e-mail.");
@@ -431,7 +240,7 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
             if (user.EmailConfirmed)
                 return NotificarErro("Conta de e-mail já confirmada.");
 
-            if (!await EnviarCodigoConfirmarEmail(user, cancellationToken))
+            if (!await EnviarConfirmarEmail(user, cancellationToken))
                 return false;
 
             return CommandEhValido();
@@ -474,7 +283,7 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
             if (!limiteHora.Permitido)
                 return NotificarLimiteExcedido("Limite de solicitações de redefinição de senha excedido.", limiteHora.RetryAfter);
 
-            if (string.IsNullOrWhiteSpace(_frontendConfig.FrontendUrl))
+            if (string.IsNullOrWhiteSpace(_urlsConfig.FrontendUrl))
                 return NotificarErro("Não foi possível enviar o link: URL do frontend não configurada.");
 
             var user = await _userManager.FindByEmailAsync(command.Email);
@@ -485,7 +294,7 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
 
             var code = await _userManager.GeneratePasswordResetTokenAsync(user);
             var codigo = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var link = $"{_frontendConfig.FrontendUrl.TrimEnd('/')}/redefinir-senha" +
+            var link = $"{_urlsConfig.FrontendUrl.TrimEnd('/')}/redefinir-senha" +
                 $"?email={Uri.EscapeDataString(user.Email)}&code={codigo}";
 
             var emailCommand = new EnviarEmailCommand(
@@ -523,6 +332,15 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
 
             if (!result.Succeeded)
                 return AdicionarErrosIdentity(result);
+
+            try
+            {
+                await _jwtService.RevogarSessoesDoUsuarioAsync(user.Id, cancellationToken);
+            }
+            catch (Exception)
+            {
+                return NotificarErro(ErroPersistencia);
+            }
 
             return CommandEhValido();
         }

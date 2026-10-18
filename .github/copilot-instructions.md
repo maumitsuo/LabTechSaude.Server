@@ -27,3 +27,4 @@
 - Mantenha leituras e gravações assíncronas quando os contratos ao redor também forem assíncronos. Use as abstrações existentes de repositório e `IUnitOfWork` para persistência.
 - Mantenha o versionamento das rotas da API no padrão estabelecido `api/v{version:apiVersion}/...` e mapeie view models de transporte para comandos usando métodos de extensão em Application.
 - Siga `constitution.md` ao implementar funcionalidades: respeite os limites das camadas, considere a sensibilidade dos dados pessoais e de saúde, use migrações versionadas para alterações no esquema e mantenha as respostas de IA como informações, não como autoridade clínica. As especificações de funcionalidades ficam em `docs/specs/`.
+- Nenhum método gerado deve ter mais de um `return`: use uma variável local de resultado, estruturas `if/else` aninhadas ou métodos auxiliares e retorne uma única vez, no final do método.

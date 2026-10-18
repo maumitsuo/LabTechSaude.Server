@@ -12,6 +12,9 @@ using LabTechSaude.Data.Uow;
 using LabTechSaude.Domain.Core.Data;
 using LabTechSaude.Domain.Usuarios;
 using LabTechSaude.Api.Models.Authentications;
+using LabTechSaude.Api.Services.Authentications.RefreshTokens;
+using LabTechSaude.Api.Services.Authentications.RefreshTokens.Repository;
+using LabTechSaude.Api.Services.Authentications.Jwt;
 
 namespace LabTechSaude.Api.Configs
 {
@@ -44,6 +47,10 @@ namespace LabTechSaude.Api.Configs
             builder.Services.AddScoped<ICommandHandler<EfetuarLoginCommand, LoginResponse?>, AuthorizationCommandHandler>();
             builder.Services.AddScoped<ICommandHandler<RenovarRefreshTokenCommand, LoginResponse?>, AuthorizationCommandHandler>();
             builder.Services.AddScoped<ICommandHandler<RevogarRefreshTokenCommand, bool>, AuthorizationCommandHandler>();
+
+            builder.Services.AddScoped<IJwtService, JwtService>();
+            builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
             builder.Services.AddScoped<ICommandHandler<EnviarEmailCommand, bool>, EmailCommandHandler>();
 

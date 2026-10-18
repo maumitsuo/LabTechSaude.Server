@@ -26,6 +26,7 @@ namespace LabTechSaude.Api.Controllers.V1
         }
 
         [AllowAnonymous]
+        [EnableRateLimiting(RateLimiterConfig.AutenticacaoIpPolicy)]
         [HttpPost("cadastrar-usuario")]
         public async Task<IActionResult> Post([FromBody] CadastrarAspNetUserViewModel cadastrarAspNetUserViewModel)
         {
@@ -41,6 +42,7 @@ namespace LabTechSaude.Api.Controllers.V1
 
 
         [AllowAnonymous]
+        [EnableRateLimiting(RateLimiterConfig.AutenticacaoIpPolicy)]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] EfetuarLoginViewModel efetuarLoginViewModel)
         {
@@ -53,6 +55,7 @@ namespace LabTechSaude.Api.Controllers.V1
         }
 
         [AllowAnonymous]
+        [EnableRateLimiting(RateLimiterConfig.AutenticacaoIpPolicy)]
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenViewModel refreshTokenViewModel)
         {
@@ -66,6 +69,7 @@ namespace LabTechSaude.Api.Controllers.V1
         }
 
         [AllowAnonymous]
+        [EnableRateLimiting(RateLimiterConfig.AutenticacaoIpPolicy)]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout([FromBody] RefreshTokenViewModel refreshTokenViewModel)
         {
@@ -107,6 +111,7 @@ namespace LabTechSaude.Api.Controllers.V1
         }
 
         [AllowAnonymous]
+        [EnableRateLimiting(RateLimiterConfig.AutenticacaoIpPolicy)]
         [HttpPost("redefinir-senha")]
         public async Task<IActionResult> RedefinirSenha([FromBody] RedefinirSenhaViewModel redefinirSenhaViewModel)
         {
@@ -119,6 +124,7 @@ namespace LabTechSaude.Api.Controllers.V1
         }
 
         [AllowAnonymous]
+        [EnableRateLimiting(RateLimiterConfig.AutenticacaoIpPolicy)]
         [HttpPost("confirmar-email")]
         public async Task<IActionResult> ConfirmarEmail([FromBody] ConfirmarEmailViewModel confirmarEmail)
         {

@@ -1,10 +1,12 @@
 ﻿using LabTechSaude.Api.Services.RateLimiting;
 using LabTechSaude.Application.Commands.Dispatchers;
 using LabTechSaude.Application.Notifications;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LabTechSaude.Api.Controllers.Core
 {
+    [Authorize]
     [ApiController]
     public abstract class MainController : Controller
     {
