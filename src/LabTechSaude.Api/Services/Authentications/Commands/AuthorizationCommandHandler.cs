@@ -195,7 +195,7 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
 
         public async Task<bool> Handle(EnviarCodigoConfirmarEmailCommand command, CancellationToken cancellationToken = default)
         {
-            var chave = ChaveEmail("envio", command.Email);
+            var chave = ChaveEmail("envio-confirmar", command.Email);
 
             var cooldown = await _rateLimitService.TentarConsumirAsync(
                 chave + ":cooldown", 1, TimeSpan.FromSeconds(_rateLimitConfig.EnvioCodigoCooldownSegundos), TimeSpan.Zero);
@@ -228,12 +228,12 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
 
         public async Task<bool> Handle(ConfirmarCodigoEmailCommand command, CancellationToken cancellationToken = default)
         {
-            var chave = ChaveEmail("confirmacao", command.Email);
+            //var chave = ChaveEmail("confirmacao", command.Email);
 
-            var bloqueio = await _rateLimitService.ConsultarBloqueioAsync(chave);
+            //var bloqueio = await _rateLimitService.ConsultarBloqueioAsync(chave);
 
-            if (!bloqueio.Permitido)
-                return NotificarLimiteExcedido("Muitas tentativas de confirmação.", bloqueio.RetryAfter);
+            //if (!bloqueio.Permitido)
+            //    return NotificarLimiteExcedido("Muitas tentativas de confirmação.", bloqueio.RetryAfter);
 
             var user = await _userManager.FindByEmailAsync(command.Email);
 
@@ -247,11 +247,11 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
 
             if (!result.Succeeded)
             {
-                await _rateLimitService.TentarConsumirAsync(
-                    chave,
-                    _rateLimitConfig.ConfirmacaoCodigoMaximoFalhas,
-                    TimeSpan.FromMinutes(_rateLimitConfig.ConfirmacaoCodigoJanelaMinutos),
-                    TimeSpan.FromMinutes(_rateLimitConfig.ConfirmacaoCodigoBloqueioMinutos));
+                //await _rateLimitService.TentarConsumirAsync(
+                //    chave,
+                //    _rateLimitConfig.ConfirmacaoCodigoMaximoFalhas,
+                //    TimeSpan.FromMinutes(_rateLimitConfig.ConfirmacaoCodigoJanelaMinutos),
+                //    TimeSpan.FromMinutes(_rateLimitConfig.ConfirmacaoCodigoBloqueioMinutos));
 
                 return AdicionarErrosIdentity(result);
             }

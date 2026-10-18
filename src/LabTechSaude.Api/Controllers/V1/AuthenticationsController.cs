@@ -68,7 +68,7 @@ namespace LabTechSaude.Api.Controllers.V1
         }
 
         [AllowAnonymous]
-        [EnableRateLimiting(RateLimiterConfig.PoliticaCodigoEmail)]
+        //[EnableRateLimiting(RateLimiterConfig.PoliticaCodigoEmail)]
         [HttpPost("confirmar-codigo-email")]
         public async Task<IActionResult> ConfirmarCodigoEmail([FromBody] ConfirmarEmailViewModel confirmarEmail)
         {
