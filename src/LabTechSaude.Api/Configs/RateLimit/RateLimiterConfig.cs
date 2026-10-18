@@ -8,7 +8,7 @@ namespace LabTechSaude.Api.Configs.RateLimit
 {
     public static class RateLimiterConfig
     {
-        public const string PoliticaCodigoEmail = "codigo-email";
+        public const string EnviarEmailIdentityPolicy = "email-identity";
 
         public static WebApplicationBuilder AddRateLimiterConfig(this WebApplicationBuilder builder)
         {
@@ -27,7 +27,7 @@ namespace LabTechSaude.Api.Configs.RateLimit
             {
                 options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-                options.AddPolicy(PoliticaCodigoEmail, httpContext =>
+                options.AddPolicy(EnviarEmailIdentityPolicy, httpContext =>
                     RateLimitPartition.GetFixedWindowLimiter(
                         httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonimo",
                         _ => new FixedWindowRateLimiterOptions

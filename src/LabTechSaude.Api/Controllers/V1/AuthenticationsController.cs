@@ -53,31 +53,55 @@ namespace LabTechSaude.Api.Controllers.V1
         }
 
         [AllowAnonymous]
-        [EnableRateLimiting(RateLimiterConfig.PoliticaCodigoEmail)]
-        [HttpPost("enviar-codigo-confirmar-email")]
-        public async Task<IActionResult> EnviarCodigoConfirmarEmail([FromBody] EnviarCodigoConfirmarEmailViewModel enviarCodigoConfirmarEmail)
+        [EnableRateLimiting(RateLimiterConfig.EnviarEmailIdentityPolicy)]
+        [HttpPost("enviar-confirmar-email")]
+        public async Task<IActionResult> EnviarConfirmarEmail([FromBody] EnviarConfirmarEmailViewModel enviarCodigoConfirmarEmail)
         {
             if (!ModelStateValida())
                 return CustomResponse(ModelState);
 
             var command = enviarCodigoConfirmarEmail.ToCommand();
 
-            await _commandDispatcher.Send<EnviarCodigoConfirmarEmailCommand, bool>(command);
+            await _commandDispatcher.Send<EnviarConfirmarEmailCommand, bool>(command);
 
             return CustomResponse();
         }
 
         [AllowAnonymous]
-        //[EnableRateLimiting(RateLimiterConfig.PoliticaCodigoEmail)]
-        [HttpPost("confirmar-codigo-email")]
-        public async Task<IActionResult> ConfirmarCodigoEmail([FromBody] ConfirmarEmailViewModel confirmarEmail)
+        [EnableRateLimiting(RateLimiterConfig.EnviarEmailIdentityPolicy)]
+        [HttpPost("esqueci-minha-senha")]
+        public async Task<IActionResult> EsqueciMinhaSenha([FromBody] EsqueciMinhaSenhaViewModel esqueciMinhaSenhaViewModel)
+        {
+            if (!ModelStateValida())
+                return CustomResponse(ModelState);
+
+            await _commandDispatcher.Send<EsqueciMinhaSenhaCommand, bool>(esqueciMinhaSenhaViewModel.ToCommand());
+
+            return CustomResponse();
+        }
+
+        [AllowAnonymous]
+        [HttpPost("redefinir-senha")]
+        public async Task<IActionResult> RedefinirSenha([FromBody] RedefinirSenhaViewModel redefinirSenhaViewModel)
+        {
+            if (!ModelStateValida())
+                return CustomResponse(ModelState);
+
+            await _commandDispatcher.Send<RedefinirSenhaCommand, bool>(redefinirSenhaViewModel.ToCommand());
+
+            return CustomResponse();
+        }
+
+        [AllowAnonymous]
+        [HttpPost("confirmar-email")]
+        public async Task<IActionResult> ConfirmarEmail([FromBody] ConfirmarEmailViewModel confirmarEmail)
         {
             if (!ModelStateValida())
                 return CustomResponse(ModelState);
 
             var command = confirmarEmail.ToCommand();
 
-            await _commandDispatcher.Send<ConfirmarCodigoEmailCommand, bool>(command);
+            await _commandDispatcher.Send<ConfirmarEmailCommand, bool>(command);
 
             return CustomResponse();
         }

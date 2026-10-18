@@ -2,11 +2,11 @@
 
 namespace LabTechSaude.Api.Services.Authentications.Commands
 {
-    public class EnviarCodigoConfirmarEmailCommand : ICommand
+    public class EnviarConfirmarEmailCommand : ICommand
     {
         public string Email { get; private set; }
 
-        public EnviarCodigoConfirmarEmailCommand(string email)
+        public EnviarConfirmarEmailCommand(string email)
         {
             Email = email;
         }

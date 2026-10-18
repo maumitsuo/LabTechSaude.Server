@@ -25,6 +25,7 @@ namespace LabTechSaude.Api.Configs
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             builder.Services.Configure<SmtpConfig>(builder.Configuration.GetSection("SmtpConfig"));
+            builder.Services.Configure<UrlsConfig>(builder.Configuration.GetSection("UrlsConfig"));
 
             builder.Services.AddScoped<ICommandDispatcher, CommandDispatcher>();
 
@@ -35,8 +36,10 @@ namespace LabTechSaude.Api.Configs
             builder.Services.AddScoped<ICommandHandler<ExcluirUsuarioCommand, bool>, UsuarioCommandHandler>();
 
             builder.Services.AddScoped<ICommandHandler<CadastrarAspNetUserCommand, bool>, AuthorizationCommandHandler>();
-            builder.Services.AddScoped<ICommandHandler<EnviarCodigoConfirmarEmailCommand, bool>, AuthorizationCommandHandler>();
-            builder.Services.AddScoped<ICommandHandler<ConfirmarCodigoEmailCommand, bool>, AuthorizationCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<EnviarConfirmarEmailCommand, bool>, AuthorizationCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<ConfirmarEmailCommand, bool>, AuthorizationCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<EsqueciMinhaSenhaCommand, bool>, AuthorizationCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<RedefinirSenhaCommand, bool>, AuthorizationCommandHandler>();
 
             builder.Services.AddScoped<ICommandHandler<EfetuarLoginCommand, LoginResponse?>, AuthorizationCommandHandler>();
 

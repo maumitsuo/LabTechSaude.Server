@@ -5,9 +5,9 @@ namespace LabTechSaude.Api.Extensions
 {
     public static class ConfirmarEmailExtension
     {
-        public static ConfirmarCodigoEmailCommand ToCommand(this ConfirmarEmailViewModel confirmarEmailViewModel)
+        public static ConfirmarEmailCommand ToCommand(this ConfirmarEmailViewModel confirmarEmailViewModel)
         {
-            return new ConfirmarCodigoEmailCommand(confirmarEmailViewModel.Email, confirmarEmailViewModel.Code);
+            return new ConfirmarEmailCommand(confirmarEmailViewModel.Email, confirmarEmailViewModel.Code);
         }
     }
 }

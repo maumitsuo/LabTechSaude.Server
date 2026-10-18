@@ -1,4 +1,6 @@
-﻿using LabTechSaude.Application.Commands;
+using LabTechSaude.Api.Configs;
+using LabTechSaude.Application.Commands;
+using Microsoft.AspNetCore.WebUtilities;
 using LabTechSaude.Application.Commands.Dispatchers;
 using LabTechSaude.Application.Commands.Handlers;
 using LabTechSaude.Application.Notifications;
@@ -24,10 +26,13 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
 {
     public class AuthorizationCommandHandler : BaseCommandHandler,
         ICommandHandler<CadastrarAspNetUserCommand, bool>,
-        ICommandHandler<EnviarCodigoConfirmarEmailCommand, bool>,
-        ICommandHandler<ConfirmarCodigoEmailCommand, bool>,
+        ICommandHandler<EnviarConfirmarEmailCommand, bool>,
+        ICommandHandler<ConfirmarEmailCommand, bool>,
+        ICommandHandler<EsqueciMinhaSenhaCommand, bool>,
+        ICommandHandler<RedefinirSenhaCommand, bool>,
         ICommandHandler<EfetuarLoginCommand, LoginResponse?>
     {
+        private readonly UrlsConfig _frontendConfig;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly IUsuarioQuery _usuarioQuery;
@@ -46,9 +51,11 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
             IOptions<JwtTokenOptions> jwtTokenOptions,
             IRateLimitService rateLimitService,
             IOptions<RateLimitConfig> rateLimitConfig,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IOptions<UrlsConfig> frontendConfig)
             : base(notificador, unitOfWork, commandDispatcher)
         {
+            _frontendConfig = frontendConfig.Value;
             _userManager = userManager;
             _signInManager = signInManager;
             _usuarioQuery = usuarioQuery;
@@ -193,7 +200,7 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
             return await _commandDispatcher.Send<EnviarEmailCommand, bool>(command, cancellationToken);
         }
 
-        public async Task<bool> Handle(EnviarCodigoConfirmarEmailCommand command, CancellationToken cancellationToken = default)
+        public async Task<bool> Handle(EnviarConfirmarEmailCommand command, CancellationToken cancellationToken = default)
         {
             var chave = ChaveEmail("envio-confirmar", command.Email);
 
@@ -226,15 +233,8 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
             return CommandEhValido();
         }
 
-        public async Task<bool> Handle(ConfirmarCodigoEmailCommand command, CancellationToken cancellationToken = default)
+        public async Task<bool> Handle(ConfirmarEmailCommand command, CancellationToken cancellationToken = default)
         {
-            //var chave = ChaveEmail("confirmacao", command.Email);
-
-            //var bloqueio = await _rateLimitService.ConsultarBloqueioAsync(chave);
-
-            //if (!bloqueio.Permitido)
-            //    return NotificarLimiteExcedido("Muitas tentativas de confirmação.", bloqueio.RetryAfter);
-
             var user = await _userManager.FindByEmailAsync(command.Email);
 
             if (user == null)
@@ -246,19 +246,81 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
             var result = await _userManager.ConfirmEmailAsync(user, command.Code);
 
             if (!result.Succeeded)
-            {
-                //await _rateLimitService.TentarConsumirAsync(
-                //    chave,
-                //    _rateLimitConfig.ConfirmacaoCodigoMaximoFalhas,
-                //    TimeSpan.FromMinutes(_rateLimitConfig.ConfirmacaoCodigoJanelaMinutos),
-                //    TimeSpan.FromMinutes(_rateLimitConfig.ConfirmacaoCodigoBloqueioMinutos));
-
                 return AdicionarErrosIdentity(result);
+            
+            return CommandEhValido();
+        }
+
+        public async Task<bool> Handle(EsqueciMinhaSenhaCommand command, CancellationToken cancellationToken = default)
+        {
+            var chave = ChaveEmail("esqueci-senha", command.Email);
+
+            var cooldown = await _rateLimitService.TentarConsumirAsync(
+                chave + ":cooldown", 1, TimeSpan.FromSeconds(_rateLimitConfig.EnvioCodigoCooldownSegundos), TimeSpan.Zero);
+
+            if (!cooldown.Permitido)
+                return NotificarLimiteExcedido("Aguarde antes de solicitar um novo link.", cooldown.RetryAfter);
+
+            var limiteHora = await _rateLimitService.TentarConsumirAsync(
+                chave,
+                _rateLimitConfig.EnvioCodigoMaximoPorHora,
+                TimeSpan.FromHours(1),
+                TimeSpan.FromMinutes(_rateLimitConfig.EnvioCodigoBloqueioMinutos));
+
+            if (!limiteHora.Permitido)
+                return NotificarLimiteExcedido("Limite de solicitações de redefinição de senha excedido.", limiteHora.RetryAfter);
+
+            if (string.IsNullOrWhiteSpace(_frontendConfig.FontendUrl))
+                return NotificarErro("Não foi possível enviar o link: URL do frontend não configurada.");
+
+            var user = await _userManager.FindByEmailAsync(command.Email);
+
+            // Resposta idêntica para e-mails inexistentes ou não confirmados, evitando enumeração de usuários.
+            if (user == null || string.IsNullOrWhiteSpace(user.Email) || !user.EmailConfirmed)
+                return true;
+
+            var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var codigo = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            var link = $"{_frontendConfig.FontendUrl.TrimEnd('/')}/redefinir-senha" +
+                $"?email={Uri.EscapeDataString(user.Email)}&code={codigo}";
+
+            var emailCommand = new EnviarEmailCommand(
+                user.Email,
+                "LabTechSaude - Redefinição de senha",
+                CriarCorpoEmailRedefinirSenha(link));
+
+            if (!await _commandDispatcher.Send<EnviarEmailCommand, bool>(emailCommand, cancellationToken))
+                return false;
+
+            return CommandEhValido();
+        }
+
+        public async Task<bool> Handle(RedefinirSenhaCommand command, CancellationToken cancellationToken = default)
+        {
+            const string requisicaoInvalida = "Requisição inválida.";
+
+            var user = await _userManager.FindByEmailAsync(command.Email);
+
+            if (user == null)
+                return NotificarErro(requisicaoInvalida);
+
+            string code;
+
+            try
+            {
+                code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(command.Codigo));
+            }
+            catch (FormatException)
+            {
+                return NotificarErro("Código de redefinição inválido ou expirado.");
             }
 
-            await _rateLimitService.ResetarAsync(chave);
+            var result = await _userManager.ResetPasswordAsync(user, code, command.Senha);
 
-            return true;
+            if (!result.Succeeded)
+                return AdicionarErrosIdentity(result);
+
+            return CommandEhValido();
         }
 
         private static string ChaveEmail(string operacao, string email)
@@ -287,6 +349,17 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
                 "",
                 "O código expira em 10 minutos.",
                 "Se você não solicitou esta confirmação, ignore esta mensagem.");
+
+        private static string CriarCorpoEmailRedefinirSenha(string link) =>
+            string.Join("\r\n",
+                "Olá,",
+                "",
+                "Recebemos uma solicitação para redefinir sua senha. Acesse o link abaixo:",
+                "",
+                link,
+                "",
+                "O link expira em 10 minutos.",
+                "Se você não solicitou a redefinição, ignore esta mensagem.");
 
         private bool AdicionarErrosIdentity(IdentityResult result)
         {
