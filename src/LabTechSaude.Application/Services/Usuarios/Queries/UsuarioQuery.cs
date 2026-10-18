@@ -22,6 +22,11 @@ namespace LabTechSaude.Application.Services.Usuarios.Queries
             return (await _usuarioRepository.ObterPorId(id))?.ToViewModel();
         }
 
+        public async Task<UsuarioViewModel?> ObterPorEmail(string email)
+        {
+            return (await _usuarioRepository.ObterPorEmail(email))?.ToViewModel();
+        }
+
         public async Task<IEnumerable<UsuarioViewModel>> ObterTodos()
         {
             return (await _usuarioRepository.ObterTodos()).ToViewModel();

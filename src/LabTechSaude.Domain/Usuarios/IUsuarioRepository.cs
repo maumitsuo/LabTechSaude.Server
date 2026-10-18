@@ -7,5 +7,6 @@ namespace LabTechSaude.Domain.Usuarios
 {
     public interface IUsuarioRepository : IRepository<Usuario>
     {
+        Task<Usuario?> ObterPorEmail(string email);
     }
 }

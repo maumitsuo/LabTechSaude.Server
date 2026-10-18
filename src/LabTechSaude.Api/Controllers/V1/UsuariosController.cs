@@ -43,19 +43,6 @@ namespace LabTechSaude.Api.Controllers.V1
             return await _usuarioQuery.ObterTodos();
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Post([FromBody] UsuarioViewModel usuarioViewModel)
-        {
-            if (!ModelStateValida())
-                return CustomResponse();
-
-            var command = usuarioViewModel.ToCadastrarCommand();
-
-            await _commandDispatcher.Send(command);
-
-            return CustomResponse(command);
-        }
-
         [HttpPut]
         public async Task<IActionResult> Put([FromBody] UsuarioViewModel usuarioViewModel)
         {
@@ -64,7 +51,7 @@ namespace LabTechSaude.Api.Controllers.V1
 
             var command = usuarioViewModel.ToAtualizarCommand();
 
-            await _commandDispatcher.Send(command);
+            await _commandDispatcher.Send<AtualizarUsuarioCommand, bool>(command);
 
             return CustomResponse(command);
         }
@@ -74,7 +61,7 @@ namespace LabTechSaude.Api.Controllers.V1
         {
             var command = new ExcluirUsuarioCommand(id);
 
-            await _commandDispatcher.Send(command);
+            await _commandDispatcher.Send<ExcluirUsuarioCommand, bool>(command);
 
             return CustomResponse(command);
         }

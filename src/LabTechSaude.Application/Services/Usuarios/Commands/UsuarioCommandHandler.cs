@@ -1,4 +1,5 @@
 ﻿using LabTechSaude.Application.Commands;
+using LabTechSaude.Application.Commands.Dispatchers;
 using LabTechSaude.Application.Commands.Handlers;
 using LabTechSaude.Application.Notifications;
 using LabTechSaude.Domain.Core.Data;
@@ -8,18 +9,18 @@ using LabTechSaude.Domain.Usuarios;
 namespace LabTechSaude.Application.Services.Usuarios.Commands
 {
     public class UsuarioCommandHandler : BaseCommandHandler,
-        ICommandHandler<CadastrarUsuarioCommand>,
-        ICommandHandler<AtualizarUsuarioCommand>,
-        ICommandHandler<ExcluirUsuarioCommand>
+        ICommandHandler<CadastrarUsuarioCommand, bool>,
+        ICommandHandler<AtualizarUsuarioCommand, bool>,
+        ICommandHandler<ExcluirUsuarioCommand, bool>
     {
         private readonly IUsuarioRepository _usuarioRepository;
 
         public UsuarioCommandHandler(
             Notificador notificador, 
             IUnitOfWork unitOfWork, 
+            ICommandDispatcher commandDispatcher,
             IUsuarioRepository usuarioRepository) 
-
-                : base(notificador, unitOfWork)
+            : base(notificador, unitOfWork, commandDispatcher)
         {
             _usuarioRepository = usuarioRepository;
         }
@@ -54,7 +55,7 @@ namespace LabTechSaude.Application.Services.Usuarios.Commands
 
         public async Task<bool> Handle(CadastrarUsuarioCommand command, CancellationToken cancellationToken = default)
         {
-            var usuario = new Usuario(command.Id, command.Nome, new Cpf(command.Cpf));
+            var usuario = new Usuario(command.Id, command.Nome, new Email(command.Email), new Cpf(command.Cpf));
 
             if (!await UsuarioAptoParaCadastrar(usuario))
                 return false;

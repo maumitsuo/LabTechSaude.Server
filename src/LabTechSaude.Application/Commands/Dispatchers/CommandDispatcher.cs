@@ -16,10 +16,10 @@ namespace LabTechSaude.Application.Commands.Dispatchers
             _serviceProvider = serviceProvider;
         }
 
-        public async Task<bool> Send<TCommand>(TCommand command, CancellationToken cancellationToken = default) 
+        public async Task<TResult> Send<TCommand, TResult>(TCommand command, CancellationToken cancellationToken = default) 
             where TCommand : ICommand
         {
-            var handler = _serviceProvider.GetRequiredService<ICommandHandler<TCommand>>();
+            var handler = _serviceProvider.GetRequiredService<ICommandHandler<TCommand, TResult>>();
 
             return await handler.Handle(command, cancellationToken);
         }

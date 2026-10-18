@@ -7,6 +7,6 @@ namespace LabTechSaude.Application.Commands.Dispatchers
 {
     public interface ICommandDispatcher
     {
-        Task<bool> Send<TCommand>(TCommand command, CancellationToken cancellationToken = default) where TCommand : ICommand;
+        Task<TResult> Send<TCommand, TResult>(TCommand command, CancellationToken cancellationToken = default) where TCommand : ICommand;
     }
 }

@@ -18,11 +18,22 @@ namespace LabTechSaude.Data.Mappings
                 .HasMaxLength(UsuarioValidation.Nome_MaxLength)
                 .IsRequired();
 
+            builder.OwnsOne(p => p.Email, c =>
+            {
+                c.Property(x => x.Value)
+                    .HasColumnName("Email")
+                    .HasMaxLength(EmailValidation.Email_MaxLength)
+                    .IsRequired();
+
+                c.HasIndex(x => x.Value)
+                    .IsUnique();
+            });
+
             builder.OwnsOne(p => p.Cpf, c =>
             {
                 c.Property(x => x.Value)
                     .HasColumnName("Cpf")
-                    .HasMaxLength(CpfValidator.Cpf_Length)
+                    .HasMaxLength(CpfValidation.Cpf_Length)
                     .IsFixedLength()
                     .IsRequired();
 

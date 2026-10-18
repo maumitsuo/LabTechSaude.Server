@@ -12,11 +12,13 @@ namespace LabTechSaude.Application.Extensions
             if (usuario == null) 
                 return null;
 
-            return new UsuarioViewModel(
-                usuario.Id,
-                usuario.Nome,
-                usuario.Cpf.ToString()
-            );
+            return new UsuarioViewModel 
+            { 
+                Id = usuario.Id,
+                Nome = usuario.Nome,
+                Email = usuario.Email.ToString(),
+                Cpf = usuario.Cpf.ToString()
+            };
         }
 
         public static IEnumerable<UsuarioViewModel> ToViewModel(this IEnumerable<Usuario> usuarios)
@@ -30,31 +32,11 @@ namespace LabTechSaude.Application.Extensions
                 .ToList();
         }
 
-        public static CadastrarUsuarioCommand ToCadastrarCommand(this UsuarioViewModel usuarioViewModel)
-        {
-            return new CadastrarUsuarioCommand(
-                usuarioViewModel.Nome,
-                usuarioViewModel.Cpf
-            );
-        }
-
         public static AtualizarUsuarioCommand ToAtualizarCommand(this UsuarioViewModel usuarioViewModel)
         {
             return new AtualizarUsuarioCommand(
                 usuarioViewModel.Id,
                 usuarioViewModel.Nome
-            );
-        }
-
-        public static Usuario? ToDomain(this UsuarioViewModel usuarioViewModel)
-        {
-            if (usuarioViewModel == null)
-                return null;
-
-            return new Usuario(
-                usuarioViewModel.Id,
-                usuarioViewModel.Nome,
-                new Cpf(usuarioViewModel.Cpf)
             );
         }
     }

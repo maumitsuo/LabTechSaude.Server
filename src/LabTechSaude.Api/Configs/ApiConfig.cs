@@ -35,25 +35,18 @@ namespace LabTechSaude.Api.Configs
             return builder;
         }
 
-        public static IApplicationBuilder UseApiConfiguration(this WebApplication app, IWebHostEnvironment env)
+        public static WebApplication UseApiConfiguration(this WebApplication app)
         {
-            if (env.IsDevelopment())
+            if (app.Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.MapOpenApi();
-
-                app.MapScalarApiReference(options =>
-                {
-                    options
-                        .WithTitle("LabTechSaude API")
-                        .WithTheme(ScalarTheme.BluePlanet)
-                        .AddPreferredSecuritySchemes("Bearer");
-                });
             }
 
+            app.UseForwardedHeaders();
             app.UseHttpsRedirection();
             app.UseCors("AllowAll");
             app.UseRouting();
+            app.UseRateLimiter();
 
             app.UseAuthentication();
             app.UseAuthorization();

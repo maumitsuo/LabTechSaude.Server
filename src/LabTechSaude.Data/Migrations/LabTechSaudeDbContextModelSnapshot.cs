@@ -17,7 +17,7 @@ namespace LabTechSaude.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.12")
+                .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -63,7 +63,32 @@ namespace LabTechSaude.Data.Migrations
                                 .HasForeignKey("UsuarioId");
                         });
 
+                    b.OwnsOne("LabTechSaude.Domain.Core.ValueObjects.Email", "Email", b1 =>
+                        {
+                            b1.Property<Guid>("UsuarioId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasMaxLength(256)
+                                .HasColumnType("character varying(256)")
+                                .HasColumnName("Email");
+
+                            b1.HasKey("UsuarioId");
+
+                            b1.HasIndex("Value")
+                                .IsUnique();
+
+                            b1.ToTable("Usuarios");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UsuarioId");
+                        });
+
                     b.Navigation("Cpf")
+                        .IsRequired();
+
+                    b.Navigation("Email")
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

@@ -6,10 +6,11 @@ namespace LabTechSaude.Application.Services.Usuarios.Commands
 {
     public class CadastrarUsuarioCommand : BaseUsuarioCommand
     {
-        public CadastrarUsuarioCommand(string nome, string cpf)
+        public CadastrarUsuarioCommand(Guid id, string nome, string email, string cpf)
         {
-            Id = Guid.NewGuid();
+            Id = id;
             Nome = nome;
+            Email = email;
             Cpf = cpf;
         }
     }
