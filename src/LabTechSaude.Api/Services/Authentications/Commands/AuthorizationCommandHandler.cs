@@ -270,7 +270,7 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
             if (!limiteHora.Permitido)
                 return NotificarLimiteExcedido("Limite de solicitações de redefinição de senha excedido.", limiteHora.RetryAfter);
 
-            if (string.IsNullOrWhiteSpace(_frontendConfig.FontendUrl))
+            if (string.IsNullOrWhiteSpace(_frontendConfig.FrontendUrl))
                 return NotificarErro("Não foi possível enviar o link: URL do frontend não configurada.");
 
             var user = await _userManager.FindByEmailAsync(command.Email);
@@ -281,7 +281,7 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
 
             var code = await _userManager.GeneratePasswordResetTokenAsync(user);
             var codigo = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var link = $"{_frontendConfig.FontendUrl.TrimEnd('/')}/redefinir-senha" +
+            var link = $"{_frontendConfig.FrontendUrl.TrimEnd('/')}/redefinir-senha" +
                 $"?email={Uri.EscapeDataString(user.Email)}&code={codigo}";
 
             var emailCommand = new EnviarEmailCommand(
