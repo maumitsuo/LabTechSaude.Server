@@ -42,6 +42,8 @@ namespace LabTechSaude.Api.Configs
             builder.Services.AddScoped<ICommandHandler<RedefinirSenhaCommand, bool>, AuthorizationCommandHandler>();
 
             builder.Services.AddScoped<ICommandHandler<EfetuarLoginCommand, LoginResponse?>, AuthorizationCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<RenovarRefreshTokenCommand, LoginResponse?>, AuthorizationCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<RevogarRefreshTokenCommand, bool>, AuthorizationCommandHandler>();
 
             builder.Services.AddScoped<ICommandHandler<EnviarEmailCommand, bool>, EmailCommandHandler>();
 

@@ -53,6 +53,32 @@ namespace LabTechSaude.Api.Controllers.V1
         }
 
         [AllowAnonymous]
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenViewModel refreshTokenViewModel)
+        {
+            if (!ModelStateValida())
+                return CustomResponse();
+
+            var response = await _commandDispatcher.Send<RenovarRefreshTokenCommand, LoginResponse?>(
+                new RenovarRefreshTokenCommand(refreshTokenViewModel.RefreshToken));
+
+            return CustomResponse(response);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout([FromBody] RefreshTokenViewModel refreshTokenViewModel)
+        {
+            if (!ModelStateValida())
+                return CustomResponse();
+
+            await _commandDispatcher.Send<RevogarRefreshTokenCommand, bool>(
+                new RevogarRefreshTokenCommand(refreshTokenViewModel.RefreshToken));
+
+            return CustomResponse();
+        }
+
+        [AllowAnonymous]
         [EnableRateLimiting(RateLimiterConfig.EnviarEmailIdentityPolicy)]
         [HttpPost("enviar-confirmar-email")]
         public async Task<IActionResult> EnviarConfirmarEmail([FromBody] EnviarConfirmarEmailViewModel enviarCodigoConfirmarEmail)

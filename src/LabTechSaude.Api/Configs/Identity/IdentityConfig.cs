@@ -15,7 +15,13 @@ namespace LabTechSaude.Api.Configs.Identity
                 throw new ArgumentNullException(nameof(builder));
 
             var jwtTokenOptionsSection = builder.Configuration.GetSection("JwtTokenOptions");
-            builder.Services.Configure<JwtTokenOptions>(jwtTokenOptionsSection);
+            builder.Services.AddOptions<JwtTokenOptions>()
+                .Bind(jwtTokenOptionsSection)
+                .Validate(
+                    options => options.RefreshTokenSlidingExpirationDays > 0
+                        && options.RefreshTokenAbsoluteExpirationDays >= options.RefreshTokenSlidingExpirationDays,
+                    "A validade absoluta do refresh token deve ser maior ou igual à validade deslizante.")
+                .ValidateOnStart();
             var jwtTokenOptions = jwtTokenOptionsSection.Get<JwtTokenOptions>();
 
             builder.Services.AddDbContext<LabTechSaudeIdentityDbContext>(options =>
