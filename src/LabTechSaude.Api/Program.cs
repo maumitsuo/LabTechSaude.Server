@@ -1,5 +1,6 @@
 using LabTechSaude.Api.Configs;
 using LabTechSaude.Api.Configs.Identity;
+using LabTechSaude.Api.Configs.RateLimit;
 using Parametriz.AutoNFP.Api.Configs;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,7 @@ builder.Configuration
 builder
     .AddDatabaseConfig()
     .AddRedisConfig()
+    .AddRateLimiterConfig()
     .AddIdentityConfig()
     .AddApiConfig()
     .AddDependencyInjectionConfig()

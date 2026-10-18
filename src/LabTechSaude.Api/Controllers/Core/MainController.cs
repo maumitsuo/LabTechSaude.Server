@@ -1,4 +1,5 @@
-﻿using LabTechSaude.Application.Commands.Dispatchers;
+﻿using LabTechSaude.Api.Services.RateLimiting;
+using LabTechSaude.Application.Commands.Dispatchers;
 using LabTechSaude.Application.Notifications;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,11 +26,19 @@ namespace LabTechSaude.Api.Controllers.Core
                 return Ok(result);
             }
 
-            
-            return BadRequest(new ValidationProblemDetails(new Dictionary<string, string[]>
+            var problema = new ValidationProblemDetails(new Dictionary<string, string[]>
             {
                 { "mensagens", _notificador.Notificacoes.ToArray() }
-            }));
+            });
+
+            if (HttpContext.Items.TryGetValue(RateLimitHttpItems.RetryAfterSegundos, out var retryAfter) && retryAfter is int segundos)
+            {
+                Response.Headers.RetryAfter = segundos.ToString();
+                problema.Status = StatusCodes.Status429TooManyRequests;
+                return StatusCode(StatusCodes.Status429TooManyRequests, problema);
+            }
+
+            return BadRequest(problema);
         }
 
         protected bool OperacaoValida() => !_notificador.ExistemNotificacoes();

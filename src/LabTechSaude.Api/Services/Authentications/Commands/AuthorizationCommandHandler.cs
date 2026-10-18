@@ -16,6 +16,9 @@ using LabTechSaude.Api.Services.Authentications;
 using LabTechSaude.Api.Services.Emails.Commands;
 using LabTechSaude.Api.Models.Authentications;
 using LabTechSaude.Application.ViewModels;
+using LabTechSaude.Api.Services.RateLimiting;
+using System.Security.Cryptography;
+using LabTechSaude.Api.Configs.RateLimit;
 
 namespace LabTechSaude.Api.Services.Authentications.Commands
 {
@@ -29,6 +32,9 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly IUsuarioQuery _usuarioQuery;
         private readonly JwtTokenOptions _jwtTokenOptions;
+        private readonly IRateLimitService _rateLimitService;
+        private readonly RateLimitConfig _rateLimitConfig;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public AuthorizationCommandHandler(
             Notificador notificador,
@@ -37,13 +43,19 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
             IUsuarioQuery usuarioQuery,
-            IOptions<JwtTokenOptions> jwtTokenOptions)
+            IOptions<JwtTokenOptions> jwtTokenOptions,
+            IRateLimitService rateLimitService,
+            IOptions<RateLimitConfig> rateLimitConfig,
+            IHttpContextAccessor httpContextAccessor)
             : base(notificador, unitOfWork, commandDispatcher)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _usuarioQuery = usuarioQuery;
             _jwtTokenOptions = jwtTokenOptions.Value;
+            _rateLimitService = rateLimitService;
+            _rateLimitConfig = rateLimitConfig.Value;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<LoginResponse?> Handle(EfetuarLoginCommand command, CancellationToken cancellationToken = default)
@@ -183,6 +195,23 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
 
         public async Task<bool> Handle(EnviarCodigoConfirmarEmailCommand command, CancellationToken cancellationToken = default)
         {
+            var chave = ChaveEmail("envio", command.Email);
+
+            var cooldown = await _rateLimitService.TentarConsumirAsync(
+                chave + ":cooldown", 1, TimeSpan.FromSeconds(_rateLimitConfig.EnvioCodigoCooldownSegundos), TimeSpan.Zero);
+
+            if (!cooldown.Permitido)
+                return NotificarLimiteExcedido("Aguarde antes de solicitar um novo código.", cooldown.RetryAfter);
+
+            var limiteHora = await _rateLimitService.TentarConsumirAsync(
+                chave,
+                _rateLimitConfig.EnvioCodigoMaximoPorHora,
+                TimeSpan.FromHours(1),
+                TimeSpan.FromMinutes(_rateLimitConfig.EnvioCodigoBloqueioMinutos));
+
+            if (!limiteHora.Permitido)
+                return NotificarLimiteExcedido("Limite de solicitações de código excedido.", limiteHora.RetryAfter);
+
             var user = await _userManager.FindByEmailAsync(command.Email);
 
             if (user == null)
@@ -199,6 +228,13 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
 
         public async Task<bool> Handle(ConfirmarCodigoEmailCommand command, CancellationToken cancellationToken = default)
         {
+            var chave = ChaveEmail("confirmacao", command.Email);
+
+            var bloqueio = await _rateLimitService.ConsultarBloqueioAsync(chave);
+
+            if (!bloqueio.Permitido)
+                return NotificarLimiteExcedido("Muitas tentativas de confirmação.", bloqueio.RetryAfter);
+
             var user = await _userManager.FindByEmailAsync(command.Email);
 
             if (user == null)
@@ -210,9 +246,35 @@ namespace LabTechSaude.Api.Services.Authentications.Commands
             var result = await _userManager.ConfirmEmailAsync(user, command.Code);
 
             if (!result.Succeeded)
+            {
+                await _rateLimitService.TentarConsumirAsync(
+                    chave,
+                    _rateLimitConfig.ConfirmacaoCodigoMaximoFalhas,
+                    TimeSpan.FromMinutes(_rateLimitConfig.ConfirmacaoCodigoJanelaMinutos),
+                    TimeSpan.FromMinutes(_rateLimitConfig.ConfirmacaoCodigoBloqueioMinutos));
+
                 return AdicionarErrosIdentity(result);
-            
+            }
+
+            await _rateLimitService.ResetarAsync(chave);
+
             return true;
+        }
+
+        private static string ChaveEmail(string operacao, string email)
+        {
+            var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(email.Trim().ToLowerInvariant())));
+            return $"{operacao}:{hash}";
+        }
+
+        private bool NotificarLimiteExcedido(string mensagem, TimeSpan retryAfter)
+        {
+            var segundos = (int)Math.Ceiling(retryAfter.TotalSeconds);
+
+            if (_httpContextAccessor.HttpContext is { } httpContext)
+                httpContext.Items[RateLimitHttpItems.RetryAfterSegundos] = segundos;
+
+            return NotificarErro($"{mensagem} Tente novamente em {segundos} segundos.");
         }
 
         private static string CriarCorpoEmailConfirmacao(string code) =>

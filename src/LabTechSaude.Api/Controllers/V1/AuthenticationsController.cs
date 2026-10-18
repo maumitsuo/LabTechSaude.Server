@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using Microsoft.AspNetCore.RateLimiting;
 using LabTechSaude.Api.Controllers.Core;
 using LabTechSaude.Api.Extensions;
 using LabTechSaude.Api.Models.Authentications;
@@ -9,6 +10,7 @@ using LabTechSaude.Application.Notifications;
 using LabTechSaude.Application.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using LabTechSaude.Api.Configs.RateLimit;
 
 namespace LabTechSaude.Api.Controllers.V1
 {
@@ -51,6 +53,7 @@ namespace LabTechSaude.Api.Controllers.V1
         }
 
         [AllowAnonymous]
+        [EnableRateLimiting(RateLimiterConfig.PoliticaCodigoEmail)]
         [HttpPost("enviar-codigo-confirmar-email")]
         public async Task<IActionResult> EnviarCodigoConfirmarEmail([FromBody] EnviarCodigoConfirmarEmailViewModel enviarCodigoConfirmarEmail)
         {
@@ -65,6 +68,7 @@ namespace LabTechSaude.Api.Controllers.V1
         }
 
         [AllowAnonymous]
+        [EnableRateLimiting(RateLimiterConfig.PoliticaCodigoEmail)]
         [HttpPost("confirmar-codigo-email")]
         public async Task<IActionResult> ConfirmarCodigoEmail([FromBody] ConfirmarEmailViewModel confirmarEmail)
         {

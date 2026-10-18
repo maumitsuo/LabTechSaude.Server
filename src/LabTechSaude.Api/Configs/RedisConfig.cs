@@ -1,3 +1,5 @@
+using StackExchange.Redis;
+
 namespace LabTechSaude.Api.Configs
 {
     public static class RedisConfig
@@ -16,6 +18,11 @@ namespace LabTechSaude.Api.Configs
                 options.Configuration = connectionString;
                 options.InstanceName = "LabTechSaude:";
             });
+
+            var redisOptions = ConfigurationOptions.Parse(connectionString);
+            redisOptions.AbortOnConnectFail = false;
+
+            builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisOptions));
 
             return builder;
         }

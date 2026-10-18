@@ -42,9 +42,11 @@ namespace LabTechSaude.Api.Configs
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseForwardedHeaders();
             app.UseHttpsRedirection();
             app.UseCors("AllowAll");
             app.UseRouting();
+            app.UseRateLimiter();
 
             app.UseAuthentication();
             app.UseAuthorization();
