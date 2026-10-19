@@ -9,8 +9,7 @@ namespace LabTechSaude.Api.Configs.RateLimit
     public static class RateLimiterConfig
     {
         public const string EnviarEmailIdentityPolicy = "email-identity";
-        public const string AutenticacaoIpPolicy = "autenticacao-ip";
-
+        
         public static WebApplicationBuilder AddRateLimiterConfig(this WebApplicationBuilder builder)
         {
             ArgumentNullException.ThrowIfNull(builder);
@@ -34,16 +33,6 @@ namespace LabTechSaude.Api.Configs.RateLimit
                         _ => new FixedWindowRateLimiterOptions
                         {
                             PermitLimit = config.IpRequisicoesPorMinuto,
-                            Window = TimeSpan.FromMinutes(1),
-                            QueueLimit = 0
-                        }));
-
-                options.AddPolicy(AutenticacaoIpPolicy, httpContext =>
-                    RateLimitPartition.GetFixedWindowLimiter(
-                        httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonimo",
-                        _ => new FixedWindowRateLimiterOptions
-                        {
-                            PermitLimit = config.AutenticacaoIpRequisicoesPorMinuto,
                             Window = TimeSpan.FromMinutes(1),
                             QueueLimit = 0
                         }));

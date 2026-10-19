@@ -14,6 +14,9 @@ using LabTechSaude.Domain.Usuarios;
 using LabTechSaude.Api.Models.Authentications;
 using LabTechSaude.Api.Services.Authentications.RefreshTokens;
 using LabTechSaude.Api.Services.Authentications.RefreshTokens.Repository;
+using LabTechSaude.Api.Services.Authentications.Emails;
+using LabTechSaude.Api.Services.Accounts.Commands;
+using LabTechSaude.Api.Services.Accounts.RateLimiting;
 using LabTechSaude.Api.Services.Authentications.Jwt;
 
 namespace LabTechSaude.Api.Configs
@@ -38,19 +41,21 @@ namespace LabTechSaude.Api.Configs
             builder.Services.AddScoped<ICommandHandler<AtualizarUsuarioCommand, bool>, UsuarioCommandHandler>();
             builder.Services.AddScoped<ICommandHandler<ExcluirUsuarioCommand, bool>, UsuarioCommandHandler>();
 
-            builder.Services.AddScoped<ICommandHandler<CadastrarAspNetUserCommand, bool>, AuthorizationCommandHandler>();
-            builder.Services.AddScoped<ICommandHandler<EnviarConfirmarEmailCommand, bool>, AuthorizationCommandHandler>();
-            builder.Services.AddScoped<ICommandHandler<ConfirmarEmailCommand, bool>, AuthorizationCommandHandler>();
-            builder.Services.AddScoped<ICommandHandler<EsqueciMinhaSenhaCommand, bool>, AuthorizationCommandHandler>();
-            builder.Services.AddScoped<ICommandHandler<RedefinirSenhaCommand, bool>, AuthorizationCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<CadastrarAspNetUserCommand, bool>, AccountCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<EnviarConfirmarEmailCommand, bool>, AccountCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<ConfirmarEmailCommand, bool>, AccountCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<EsqueciMinhaSenhaCommand, bool>, AccountCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<RedefinirSenhaCommand, bool>, AccountCommandHandler>();
 
-            builder.Services.AddScoped<ICommandHandler<EfetuarLoginCommand, LoginResponse?>, AuthorizationCommandHandler>();
-            builder.Services.AddScoped<ICommandHandler<RenovarRefreshTokenCommand, LoginResponse?>, AuthorizationCommandHandler>();
-            builder.Services.AddScoped<ICommandHandler<RevogarRefreshTokenCommand, bool>, AuthorizationCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<EfetuarLoginCommand, LoginResponse?>, AuthenticationCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<RenovarRefreshTokenCommand, LoginResponse?>, AuthenticationCommandHandler>();
+            builder.Services.AddScoped<ICommandHandler<RevogarRefreshTokenCommand, bool>, AuthenticationCommandHandler>();
 
             builder.Services.AddScoped<IJwtService, JwtService>();
             builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+            builder.Services.AddScoped<IEmailAuthenticationService, EmailAuthenticationService>();
+            builder.Services.AddScoped<IRateLimitAuthenticationService, RateLimitAuthenticationService>();
 
             builder.Services.AddScoped<ICommandHandler<EnviarEmailCommand, bool>, EmailCommandHandler>();
 

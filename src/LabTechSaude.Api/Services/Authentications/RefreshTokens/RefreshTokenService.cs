@@ -48,32 +48,28 @@ namespace LabTechSaude.Api.Services.Authentications.RefreshTokens
             return refreshToken;
         }
 
-        public async Task<string?> ObterUserIdAsync(string refreshToken, CancellationToken cancellationToken = default)
+        public async Task<string> ObterUserIdAsync(string refreshToken, CancellationToken cancellationToken = default)
         {
-            string? userId = null;
-
-            if (!string.IsNullOrWhiteSpace(refreshToken))
+            if (string.IsNullOrWhiteSpace(refreshToken))
             {
-                var token = await _repository.ObterPorHashAsync(CalcularHash(refreshToken), cancellationToken);
-                userId = token?.UserId;
-            }
-
-            if (userId == null)
                 _notificador.IncluirNotificacao(TokenInvalidoOuExpirado);
+                return string.Empty;
+            }
+            
+            var token = await _repository.ObterPorHashAsync(CalcularHash(refreshToken), cancellationToken);
 
-            return userId;
+            return token?.UserId ?? string.Empty;
         }
 
-        public async Task<string?> RenovarAsync(string refreshToken, CancellationToken cancellationToken = default)
+        public async Task<string> RenovarAsync(string refreshToken, CancellationToken cancellationToken = default)
         {
-            string? novoRefreshToken = null;
-
             if (string.IsNullOrWhiteSpace(refreshToken))
+            { 
                 _notificador.IncluirNotificacao(TokenInvalidoOuExpirado);
-            else
-                novoRefreshToken = await RotacionarAsync(CalcularHash(refreshToken), cancellationToken);
+                return string.Empty;
+            }
 
-            return novoRefreshToken;
+            return await RotacionarAsync(CalcularHash(refreshToken), cancellationToken);
         }
 
         public async Task<bool> RevogarAsync(string refreshToken, CancellationToken cancellationToken = default)
@@ -93,62 +89,57 @@ namespace LabTechSaude.Api.Services.Authentications.RefreshTokens
             return _repository.RemoverPorUsuarioAsync(userId, cancellationToken);
         }
 
-        private async Task<string?> RotacionarAsync(string tokenHash, CancellationToken cancellationToken)
+        private async Task<string> RotacionarAsync(string tokenHash, CancellationToken cancellationToken)
         {
-            string? novoRefreshToken = null;
-
             await using var transaction = await _repository.IniciarTransacaoAsync(cancellationToken);
             var currentToken = await _repository.ObterPorHashAsync(tokenHash, cancellationToken);
 
             if (currentToken == null)
             {
                 _notificador.IncluirNotificacao(TokenInvalidoOuExpirado);
+                return string.Empty;
             }
-            else
+            
+            await _repository.BloquearFamiliaAsync(currentToken.FamilyId, cancellationToken);
+            await _repository.RecarregarAsync(currentToken, cancellationToken);
+            var now = DateTimeOffset.UtcNow;
+
+            if (currentToken.RevokedAt.HasValue)
             {
-                await _repository.BloquearFamiliaAsync(currentToken.FamilyId, cancellationToken);
-                await _repository.RecarregarAsync(currentToken, cancellationToken);
-                var now = DateTimeOffset.UtcNow;
-
-                if (currentToken.RevokedAt.HasValue)
-                {
-                    await RevogarFamiliaENotificarAsync(currentToken.FamilyId, now, transaction, cancellationToken);
-                }
-                else if (currentToken.ExpiresAt <= now || currentToken.AbsoluteExpiresAt <= now)
-                {
-                    _notificador.IncluirNotificacao(TokenInvalidoOuExpirado);
-                }
-                else
-                {
-                    var user = await _userManager.FindByIdAsync(currentToken.UserId);
-
-                    if (user == null || !user.EmailConfirmed || await _userManager.IsLockedOutAsync(user))
-                    {
-                        await RevogarFamiliaENotificarAsync(currentToken.FamilyId, now, transaction, cancellationToken);
-                    }
-                    else
-                    {
-                        var nextTokenId = Guid.NewGuid();
-                        var proximoRefreshToken = GerarRefreshToken();
-                        var entity = CriarEntidade(user.Id, currentToken.FamilyId, now, currentToken.AbsoluteExpiresAt, proximoRefreshToken, nextTokenId);
-
-                        _repository.Adicionar(entity);
-                        await _repository.SalvarAsync(cancellationToken);
-
-                        if (await _repository.RevogarAtivoAsync(currentToken.Id, nextTokenId, now, cancellationToken))
-                        {
-                            await transaction.CommitAsync(cancellationToken);
-                            novoRefreshToken = proximoRefreshToken;
-                        }
-                        else
-                        {
-                            await RevogarFamiliaENotificarAsync(currentToken.FamilyId, now, transaction, cancellationToken);
-                        }
-                    }
-                }
+                await RevogarFamiliaENotificarAsync(currentToken.FamilyId, now, transaction, cancellationToken);
+                return string.Empty;
             }
 
-            return novoRefreshToken;
+            if (currentToken.ExpiresAt <= now || currentToken.AbsoluteExpiresAt <= now)
+            {
+                _notificador.IncluirNotificacao(TokenInvalidoOuExpirado);
+                return string.Empty;
+            }
+            
+            var user = await _userManager.FindByIdAsync(currentToken.UserId);
+
+            if (user == null || !user.EmailConfirmed || await _userManager.IsLockedOutAsync(user))
+            {
+                await RevogarFamiliaENotificarAsync(currentToken.FamilyId, now, transaction, cancellationToken);
+                return string.Empty;
+            }
+             
+            var nextTokenId = Guid.NewGuid();
+            var proximoRefreshToken = GerarRefreshToken();
+            var entity = CriarEntidade(user.Id, currentToken.FamilyId, now, currentToken.AbsoluteExpiresAt, proximoRefreshToken, nextTokenId);
+
+            _repository.Adicionar(entity);
+            await _repository.SalvarAsync(cancellationToken);
+
+            if (!await _repository.RevogarAtivoAsync(currentToken.Id, nextTokenId, now, cancellationToken))
+            {
+                await RevogarFamiliaENotificarAsync(currentToken.FamilyId, now, transaction, cancellationToken);
+                return string.Empty;
+            }
+
+            await transaction.CommitAsync(cancellationToken);
+
+            return proximoRefreshToken;
         }
 
         private async Task<bool> RevogarSessaoAsync(string tokenHash, CancellationToken cancellationToken)

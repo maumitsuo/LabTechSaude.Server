@@ -47,28 +47,26 @@ namespace LabTechSaude.Api.Services.Authentications.Jwt
 
         public async Task<LoginResponse?> RenovarAsync(string refreshToken, CancellationToken cancellationToken = default)
         {
-            LoginResponse? login = null;
             var userId = await _refreshTokenService.ObterUserIdAsync(refreshToken, cancellationToken);
 
-            if (userId != null)
+            if (string.IsNullOrEmpty(userId))
+                return null;
+            
+            var user = await _userManager.FindByIdAsync(userId);
+            var usuario = await _usuarioQuery.ObterPorId(Guid.Parse(userId));
+
+            if (user == null || usuario == null)
             {
-                var user = await _userManager.FindByIdAsync(userId);
-                var usuario = await _usuarioQuery.ObterPorId(Guid.Parse(userId));
-
-                if (user == null || usuario == null)
-                {
-                    _notificador.IncluirNotificacao("Refresh token inválido ou expirado.");
-                }
-                else
-                {
-                    var novoRefreshToken = await _refreshTokenService.RenovarAsync(refreshToken, cancellationToken);
-
-                    if (novoRefreshToken != null)
-                        login = await CriarLoginResponseAsync(user, usuario, novoRefreshToken);
-                }
+                _notificador.IncluirNotificacao("Refresh token inválido ou expirado.");
+                return null;
             }
 
-            return login;
+            var novoRefreshToken = await _refreshTokenService.RenovarAsync(refreshToken, cancellationToken);
+
+            if (string.IsNullOrEmpty(novoRefreshToken))
+                return null;
+
+            return await CriarLoginResponseAsync(user, usuario, novoRefreshToken);
         }
 
         public Task<bool> RevogarAsync(string refreshToken, CancellationToken cancellationToken = default)

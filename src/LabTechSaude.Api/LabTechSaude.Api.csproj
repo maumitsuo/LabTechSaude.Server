@@ -31,4 +31,8 @@
     <ProjectReference Include="..\LabTechSaude.Data\LabTechSaude.Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\Authentications\Emails\" />
+  </ItemGroup>
+
 </Project>

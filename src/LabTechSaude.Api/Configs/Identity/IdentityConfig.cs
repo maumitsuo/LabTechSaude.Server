@@ -16,9 +16,10 @@ namespace LabTechSaude.Api.Configs.Identity
             if (builder == null)
                 throw new ArgumentNullException(nameof(builder));
 
-            var jwtTokenOptionsSection = builder.Configuration.GetSection("JwtTokenOptions");
+            var jwtOptionsSection = builder.Configuration.GetSection("JwtOptions");
+
             builder.Services.AddOptions<JwtOptions>()
-                .Bind(jwtTokenOptionsSection)
+                .Bind(jwtOptionsSection)
                 .Validate(
                     options => options.RefreshTokenSlidingExpirationDays > 0
                         && options.RefreshTokenAbsoluteExpirationDays >= options.RefreshTokenSlidingExpirationDays,
@@ -29,7 +30,8 @@ namespace LabTechSaude.Api.Configs.Identity
                         && options.SecretKey.All(char.IsAscii),
                     $"JwtOptions:SecretKey deve conter apenas caracteres ASCII e ter no mínimo {MinimoBytesSecretKey} caracteres.")
                 .ValidateOnStart();
-            var jwtOptions = jwtTokenOptionsSection.Get<JwtOptions>();
+
+            var jwtOptions = jwtOptionsSection.Get<JwtOptions>();
 
             builder.Services.AddDbContext<LabTechSaudeIdentityDbContext>(options =>
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));

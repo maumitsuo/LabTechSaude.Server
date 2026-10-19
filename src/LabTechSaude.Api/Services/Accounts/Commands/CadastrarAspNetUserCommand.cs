@@ -1,6 +1,6 @@
 ﻿using LabTechSaude.Application.Commands.Messages;
 
-namespace LabTechSaude.Api.Services.Authentications.Commands
+namespace LabTechSaude.Api.Services.Accounts.Commands
 {
     public class CadastrarAspNetUserCommand : Command
     {
