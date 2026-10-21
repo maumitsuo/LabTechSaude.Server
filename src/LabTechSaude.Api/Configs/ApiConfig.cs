@@ -44,6 +44,7 @@ namespace LabTechSaude.Api.Configs
                 app.UseCors("Development");
             }
 
+            app.UseForwardedHeaders();
             app.UseHttpsRedirection();
             
             app.UseRouting();
