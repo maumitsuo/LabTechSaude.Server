@@ -8,8 +8,6 @@ namespace LabTechSaude.Api.Configs
 {
     public static class ApiConfig
     {
-        private const string CorsPolicyName = "FrontendCors";
-
         public static WebApplicationBuilder AddApiConfig(this WebApplicationBuilder builder)
         {
             if (builder == null)
@@ -17,24 +15,14 @@ namespace LabTechSaude.Api.Configs
 
             builder.Services.AddControllers();
 
-            var isDevelopment = builder.Environment.IsDevelopment();
-            var allowedOrigins = (builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [])
-                .Append(builder.Configuration["UrlsConfig:FrontendUrl"] ?? string.Empty);
-
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy(CorsPolicyName, policy =>
+                options.AddPolicy("Development", policy =>
                 {
-                    var origens = allowedOrigins
-                        .Where(origem => !string.IsNullOrWhiteSpace(origem))
-                        .Select(origem => origem.Trim().TrimEnd('/'))
-                        .Distinct(StringComparer.OrdinalIgnoreCase)
-                        .ToArray();
-
-                    if (origens.Length > 0)
-                        policy.WithOrigins(origens).AllowAnyMethod().AllowAnyHeader();
-                    else if (isDevelopment)
-                        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+                    policy
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowAnyOrigin();
                 });
             });
 
@@ -53,11 +41,11 @@ namespace LabTechSaude.Api.Configs
             if (app.Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseCors("Development");
             }
 
-            app.UseForwardedHeaders();
             app.UseHttpsRedirection();
-            app.UseCors(CorsPolicyName);
+            
             app.UseRouting();
             app.UseRateLimiter();
 

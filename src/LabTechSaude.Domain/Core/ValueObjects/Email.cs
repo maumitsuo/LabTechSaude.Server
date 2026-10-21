@@ -12,11 +12,9 @@ namespace LabTechSaude.Domain.Core.ValueObjects
             Value = Normalize(value);
         }
 
-        public static string Normalize(string? value) =>
-            string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+        public static string Normalize(string? value) => value?.Trim().ToLower() ?? string.Empty;
 
-        public bool Equals(Email? other) =>
-            other != null && string.Equals(Value, other.Value, StringComparison.Ordinal);
+        public bool Equals(Email? other) => other != null && string.Equals(Value, other.Value, StringComparison.Ordinal);
 
         public override bool Equals(object? obj) => obj is Email other && Equals(other);
 

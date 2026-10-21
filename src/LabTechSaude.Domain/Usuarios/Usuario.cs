@@ -10,8 +10,8 @@ namespace LabTechSaude.Domain.Usuarios
     public class Usuario : Entity<Usuario>
     {
         public string Nome { get; private set; } = string.Empty;
-        public Email Email { get; private set; } = null;
-        public Cpf Cpf { get; private set; } = null!;
+        public Email Email { get; private set; } = new Email(string.Empty);
+        public Cpf Cpf { get; private set; } = new Cpf(string.Empty);
         
 
         public Usuario(Guid id, string nome, Email email, Cpf cpf)
